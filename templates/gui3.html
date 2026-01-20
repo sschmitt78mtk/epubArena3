@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <title>epubArena 3</title>
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" href="{{ url_for('static',filename='gui3.css') }}">
+    <style></style>
+    <script>
+        let logfileinfo_old = '';
+        let apiConfigurations = [];
+
+        function updateMessages() {
+            fetch("/get_messages")
+                .then(response => response.json())
+                .then(data => {
+                    text2show = (data.log_last_10_lines); // .replace('<br/>','\r\n');
+                    let logfileinfo = document.getElementById("logfileinfo");
+                    if (!logfileinfo.matches(':hover')) { // nur aktualisieren, wenn man nicht gerade darin scrollt
+                        logfileinfo.innerHTML  = text2show;
+                        logfileinfo_old = text2show;
+                        logfileinfo.scrollTop = logfileinfo.scrollHeight;
+                        logfileinfo.style.backgroundColor = "#f9f9f9"; 
+                    } else {
+                        if (logfileinfo_old !== text2show) {
+                            logfileinfo.style.backgroundColor = "#ffffcc"; // Gelb
+                        }   
+                    }
+                });
+        }
+
+        let prompt_json;
+        let activePrompt1 = 0
+        let activePrompt2 = 1
+        let promptlength = 0
+
+        function getPrompts() {
+            fetch("/get_prompts")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // console.log('Prompt-Daten erhalten:', data);
+                    prompt_json = data.prompts;
+                    promptlength = data.count;
+                    activePrompt1 = data.activePrompt1;
+                    activePrompt2 = data.activePrompt2;
+                    setprompt(1, activePrompt1)
+                    setprompt(2, activePrompt2)
+                })
+                .catch(error => {
+                    console.error('Fetch-Fehler:', error);
+                });
+        }
+
+        function setprompt(SumTran, promptno) {
+            epromptno = promptno
+            for (var i = 0; i < promptlength; i++) {
+                // console.log('promptsearch' + prompt_json[i].PromptID + ' ?  ' + i)
+                if (prompt_json[i].PromptID == promptno) {
+                    // console.log('promptmatch ' + promptno + ' -> ' + i)
+                    epromptno = i;
+                    break;
+                }
+            }
+            // PromptID
+            document.getElementById(`promptno_${SumTran}`).value = prompt_json[epromptno].PromptID
+            // System Prompt
+            document.getElementById(`system_prompt_${SumTran}`).innerText = prompt_json[epromptno].system_message
+            // Pre prompt
+            document.getElementById(`pre_prompt_${SumTran}`).innerText = prompt_json[epromptno].prePrompt
+            // Post prompt
+            document.getElementById(`post_prompt_${SumTran}`).innerText = prompt_json[epromptno].postPrompt
+            // Info
+            document.getElementById(`info_prompt_${SumTran}`).innerText = prompt_json[epromptno].infostr
+            // Max new token
+            document.getElementById(`maxnewtoken_${SumTran}`).value = prompt_json[epromptno].maxNewToken
+            // Temperature
+            document.getElementById(`temp_${SumTran}`).value = prompt_json[epromptno].temperature
+            // [Unused] - Top P
+            // document.getElementById(`top_p_${SumTran}`).value = prompt_json[epromptno].top_p
+            // Allowing long answers
+            document.getElementById(`allow_long_answer_${SumTran}`).checked = prompt_json[epromptno].allowLongAnswer
+        }
+
+        async function loadAPIConfigOptions() {
+            try {
+                console.log('loadAPIConfigOptions()')
+                const response = await fetch("/get_api_configs");
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                apiConfigurations = data.configs;
+                
+                // Populate dropdown
+                const select = document.getElementById('api_config_select');
+                select.innerHTML = '<option value="">-- API Configuration laden --</option>';
+                
+                apiConfigurations.forEach((config, index) => {
+                    const option = document.createElement('option');
+                    option.value = index;
+                    option.textContent = config.name || `Config ${index + 1}`;
+                    console.log(option.textContent);
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading API configurations:', error);
+            }
+        }
+
+        // Overwrite fields when configuration is selected
+        function loadAPIConfig(configIndex) {
+            if (configIndex === '' || configIndex === null) return;
+            
+            const config = apiConfigurations[configIndex];
+            if (!config) return;
+            
+            // Overwrite all API fields with selected configuration
+            document.getElementById('current_OPENAI_API_BASE').value = config.OPENAI_API_BASE || '';
+            document.getElementById('current_OPENAI_API_KEY').value = config.OPENAI_API_KEY || '';
+            document.getElementById('current_OPEN_API_MODELNAME').value = config.OPEN_API_MODELNAME || '';
+            document.getElementById('modelname').value = config.modelname || '';
+        }
+
+        // verhindert erneutes Senden des Form bei Neuladen
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        };
+
+    </script>
+</head>
+
+<body>
+    <h2>epubArena 3</h2>
+    <form method="POST">
+        <div class="container">
+            <div id="topleft">
+                <label class="description">{{ gePubFilename }}</label>
+                <a href="{{ url_for('uploadfile') }}">Andere Datei Hochladen</a>
+                <br>
+                <label class="description" for="api_config_select">Load API Config:</label>
+                <select id="api_config_select" class="nameinput" onchange="loadAPIConfig(this.value)">
+                    <option value="">-- Select Configuration --</option>
+                </select>
+                <br>
+                <label class="description" for="current_OPENAI_API_BASE">current...API_BASE:</label>
+                <input type="text" class="nameinput" id="current_OPENAI_API_BASE" name="current_OPENAI_API_BASE" value="{{current_OPENAI_API_BASE}}"><br>
+                <label class="description" for="current_OPENAI_API_KEY">current...API_KEY:</label>
+                <input type="text" class="nameinput apikey" id="current_OPENAI_API_KEY" name="current_OPENAI_API_KEY" value="{{current_OPENAI_API_KEY}}"><br>
+                <label class="description" for="current_OPEN_API_MODELNAME">current...API_MODELNAME:</label>
+                <input type="text" class="nameinput" id="current_OPEN_API_MODELNAME" name="current_OPEN_API_MODELNAME" value="{{current_OPEN_API_MODELNAME}}"><br>
+                
+                <label class="description" for="modelname">Modelname:</label>
+                <input type="text" class="nameinput" id="modelname" name="modelname" value="{{modelname}}"><br>
+
+                <label class="description" for="modelnameTranslation">Modelname (translation):</label>
+                <input type="text" class="nameinput" id="modelnameTranslation" name="modelnameTranslation" value="{{modelnameTranslation}}"><br>
+
+                <label class="description" for="source4prompt2">source4prompt2 (leer lassen):</label>
+                <input type="text" class="nameinput" id="source4prompt2" name="source4prompt2" value="{{source4prompt2}}"><br>
+                
+                <label class="description" for="cestart">start</label>
+                <input type="number" class="numberinput" name="cestart" id="cestart" value="{{cestart}}" min="0">
+                <label class="description" for="cestop">stop</label>
+                <input type="number" class="numberinput" name="cestop" id="cestop" value="{{cestop}}" min="0"><br>
+
+                <input type="checkbox" name="translateHeading" id="translateHeading" {{ "checked" if translateHeading else "" }}>
+                <label for="translateHeading">translateHeading</label><br>
+                <input type="checkbox" name="batchJobs" id="batchJobs" {{ "checked" if batchJobs else "" }}>
+                <label for="batchJobs">batchJobs (Alle epub-Dateien in 'input')</label><br>
+                <input type="checkbox" name="forceRedo" id="forceRedo" {{ "checked" if forceRedo else "" }}>
+                <label for="forceRedo">forceRedo</label><br>     
+                <!-- <input type="checkbox" name="previewOnAutosave" id="previewOnAutosave" {{ "checked" if previewOnAutosave
+                    else "" }}>
+                <label for="previewOnAutosave">previewOnAutosave</label><br> -->
+                <input type="checkbox" name="publishOnly" id="publishOnly" {{ "checked" if publishOnly else "" }}>
+                <label for="publishOnly">publishOnly</label><br>
+                <input type="checkbox" name="useMarkdown" id="useMarkdown" {{ "checked" if useMarkdown else "" }}>
+                <label for="useMarkdown">useMarkdown (markdown2html)</label><br>
+                <input type="checkbox" name="LLMfromFile" id="LLMfromFile" {{ "checked" if LLMfromFile else "" }}>
+                <label for="LLMfromFile">LLMfromFile</label><br>
+
+                <input type="checkbox" name="uselangchain" id="uselangchain" {{ "checked" if uselangchain else "" }}>
+                <label for="uselangchain">uselangchain</label><br>
+                
+                <label for="chunker_maxp" class="description">chunker_maxp</label>
+                <input type="number" class="numberinput" name="chunker_maxp" id="chunker_maxp" value="{{chunker_maxp}}"
+                    min="0">
+                <label for="chunker_maxwords" class="description">chunker_maxwords</label>
+                <input type="number" class="numberinput" name="chunker_maxwords" id="chunker_maxwords"
+                    value="{{chunker_maxwords}}" min="0"><br>
+
+
+            </div>
+            <div id="topright">
+                <div id="logfileinfodiv"><p id="logfileinfo"></p></div>
+            </div>
+        </div>
+
+        <a href="{{ url_for('edit_prompts') }}">Prompts bearbeiten</a>
+
+        <!-- Tabelle mit Textareas -->
+        <table width="100%" cellspacing="2" cellpadding="2" border="1">
+            <tr>
+                <th>Aktiv</th>
+                <th>Nr</th>
+                <th>System Prompt</th>
+                <th>Pre-Prompt</th>
+                <th>Post-Prompt</th>
+                <th>Info</th>
+                <th>maxToken</th>
+                <th>Temp</th>
+                <th>Erlaube<br>lange Antwort</th>
+            </tr>
+            <tr>
+                <td><input type="checkbox" name="use_summary" id="use_summary" checked></td>
+                <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_1" name="promptno_1" value="55" readonly>
+                    <button type="button" onclick="prev(1)">↑</button>
+                    <button type="button" onclick="next(1)">↓</button>
+                    <button type="button" onclick="new(1)">*</button>
+                </td>
+                <td><textarea class="promptinput readonly" id="system_prompt_1" name="system_prompt_1" rows="3" readonly>system_prompt_1</textarea></td>
+                <td><textarea class="promptinput readonly" id="pre_prompt_1" name="pre_prompt_1" rows="3" readonly>pre_prompt_1</textarea></td>
+                <td><textarea class="promptinput readonly" id="post_prompt_1" name="post_prompt_1" rows="3" readonly>post_prompt_1</textarea></td>
+                <td><textarea class="promptinput readonly" id="info_prompt_1" name="info_prompt_1" rows="3" readonly>info_prompt_1</textarea></td>
+                <td><input type="number" class="numberinput readonly" name="maxnewtoken_1" id="maxnewtoken_1" value="999" min="0" readonly></td>
+                <td><input type="number" class="numberinput readonly" name="temp_1" id="temp_1" value="0.1" min="0" max="5" step="0.1" readonly></td>
+                <td><input type="checkbox" name="allow_long_answer_1" id="allow_long_answer_1" checked readonly></td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" name="use_translation" id="use_translation" checked></td>
+                <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_2" name="promptno_2" value="199" readonly>
+                    <button type="button" onclick="prev(2)">↑</button>
+                    <button type="button" onclick="next(2)">↓</button>
+                    <button type="button" onclick="new(2)">*</button>
+                </td>
+                <td><textarea class="promptinput readonly" id="system_prompt_2" name="system_prompt_2" rows="3" readonly>system_prompt_2</textarea></td>
+                <td><textarea class="promptinput readonly" id="pre_prompt_2" name="pre_prompt_2" rows="3" readonly>pre_prompt_2</textarea></td>
+                <td><textarea class="promptinput readonly" id="post_prompt_2" name="post_prompt_2" rows="3" readonly>post_prompt_2</textarea></td>
+                <td><textarea class="promptinput readonly" id="info_prompt_2" name="info_prompt_2" rows="3" readonly>info_prompt_2</textarea></td>
+                <td class="narrowtd"><input type="number" class="numberinput readonly" name="maxnewtoken_2" id="maxnewtoken_2" value="998" min="0" readonly></td>
+                <td class="narrowtd"><input type="number" class="numberinput readonly" name="temp_2" id="temp_2" value="0.2" min="0" max="5" step="0.1" readonly></td>
+                <td class="narrowtd"><input type="checkbox" name="allow_long_answer_2" id="allow_long_answer_2" checked readonly</td>
+            </tr>
+
+        </table>
+        <br>
+        <button class="startstopbutton" type="submit" name="start">START</button>
+    </form>
+    <form method="POST">
+        <button class="startstopbutton" type="submit" name="stop">STOP</button>
+    </form>
+    <form method="POST" onsubmit="return confirmDelete()">
+        <br>
+        <label class="description" for="modeltodelete">translation modelname to delete:</label>
+        <input type="text" class="modeltodelete" id="modeltodelete" name="modeltodelete" value="{{modeltodelete}}"><br>
+        <button class="deletebutton" type="submit" name="delete">DELETE</button>
+    </form>
+    <p id="statusrow"></p>
+    <!-- <button type="button" onclick="getPrompts();">getPrompts</button>  -->
+    <!-- muß außerhalb von <form> sein, weil sonst async-fetch nihct klappt-->
+    <!-- type="button" deaktiviert das Submit-Verhalten-->
+    <script>
+        function prev(a) {
+            const isFirst = a === 1;
+            let epromptno = isFirst ? activePrompt1 : activePrompt2;
+            epromptno = epromptno === 0 ? promptlength - 1 : epromptno - 1;
+            setprompt(a, epromptno);
+            if (isFirst) {
+                activePrompt1 = epromptno;
+            } else {
+                activePrompt2 = epromptno;
+            }
+        }
+
+        function next(a) {
+            const isFirst = a === 1;
+            let epromptno = isFirst ? activePrompt1 : activePrompt2;
+            epromptno = epromptno === promptlength - 1 ? 0 : epromptno + 1;
+            setprompt(a, epromptno);
+            if (isFirst) {
+                activePrompt1 = epromptno;
+            } else {
+                activePrompt2 = epromptno;
+            }
+        }
+
+        function confirmDelete() {
+            return confirm("Die Übersetzung wirklich löschen?");
+        }
+
+        setInterval(updateMessages, 2000); // Nachrichten alle 2 Sekunden abrufen
+        getPrompts();
+        loadAPIConfigOptions();
+
+    </script>
+</body>
+
+</html>

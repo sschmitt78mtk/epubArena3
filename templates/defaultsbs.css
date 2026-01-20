@@ -1,0 +1,53 @@
+
+:root {
+    --translation-width: auto; 
+}
+
+.etable {
+    text-align: left;
+    /* table-layout: fixed; */ 
+    /* fixed geht nicht gleichzeitig mit berechneter Spaltenbreite  */
+}
+
+td.translation {
+    width: var(--translation-width); 
+    transition: width 0.3s ease;
+    word-wrap: break-word; /* Lange Wörter/Zahlen umbrechen */
+    overflow-wrap: break-word; /* Alternative für bessere Browser-Unterstützung */
+    white-space: normal; /* Standardmäßiges Umbruchverhalten aktivieren */
+}
+
+img {
+    max-height: 50vh;
+    max-width: 80vw;
+} 
+
+img:hover {
+	transform: scale(2); 
+    cursor: pointer;
+}
+
+/* Navigation-Bar */
+.navbar {
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    width: 100%;
+    background-color: #215112;
+    color: white; 
+    padding: 10px; 
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Schatten für Tiefe */
+    z-index: 1; 
+}
+
+.hidden {
+    display: none;
+}
+
+.content {
+    margin-top: 60px; /* Abstand nach unten, um die Navigation-Bar nicht zu überdecken */
+}
+
+.fullrow {
+    display: table-cell;
+}

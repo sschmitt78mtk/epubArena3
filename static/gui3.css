@@ -1,0 +1,85 @@
+.startstopbutton {
+    width: 49%;
+}
+
+#messages,
+#logfileinfo {
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    min-height: 18em;
+    max-height: 18em;
+    overflow-y: auto;
+    /* Scrollbalken anzeigen */
+}
+
+#messages p,
+#logfileinfo p {
+    margin: 3px;
+    padding: 3px;
+    font-size: small;
+}
+
+.container {
+    display: flex;
+    /* Aktiviert Flexbox */
+    justify-content: space-between;
+    /* Platziert die Divs mit Abstand dazwischen */
+}
+
+#topleft {
+    width: 100ch;
+    box-sizing: border-box;
+    
+}
+
+#topright {
+    width: 50%;
+    box-sizing: border-box;
+}
+
+.description {
+    min-width: 50ch;
+    display: inline-flex;
+}
+
+.nameinput {
+    /* display: inline-flex; */
+    width: 45ch;
+}
+
+.numberinput {
+    width: 10ch;
+}
+
+.promptinput {
+    width: 95%;
+    /* Volle Breite des Containers */
+    resize: vertical;
+    /* Erlaubt vertikale Größenänderung (optional) */
+    white-space: pre-wrap;
+    /* Behält Zeilenumbrüche und ermöglicht automatischen Umbruch */
+    word-wrap: break-word;
+    /* Umbruch von langen Wörtern */
+    overflow-wrap: break-word;
+    /* Modernere Alternative zu word-wrap */
+}
+
+.narrowtd {
+    width: 10ch;
+}
+
+.readonly {
+    background-color: beige;
+}
+
+.apikey {
+    color: #ccc;
+    background-color: #ccc;
+    border: 1px solid #ccc;
+}
+
+.apikey:focus,
+.apikey:active {
+    color: black;
+    background-color: white;
+}
