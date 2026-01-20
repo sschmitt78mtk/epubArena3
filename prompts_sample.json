@@ -1,0 +1,93 @@
+[
+  {
+    "PromptID": 0,
+    "system_message": "1:1 (Original)",
+    "prePrompt": "",
+    "postPrompt": "",
+    "infostr": "no change - standard für Step1",
+    "allowLongAnswer": true,
+    "temperature": 0.2,
+    "top_p": 0.8,
+    "maxNewToken": 500,
+    "targetlanguage": "EN",
+    "AIasJudge": false
+  },
+  {
+    "PromptID": 1,
+    "system_message": "Reduziere den Text auf die zentralen Fakten und Zahlen in Listenform. Keine Ausschmückungen.",
+    "prePrompt": "Hier der Text:\n",
+    "postPrompt": "Hier der reduzierte Text mit den zentralen Fakten und Zahlen in Listenform:\n",
+    "infostr": "TBD",
+    "allowLongAnswer": false,
+    "temperature": 0.2,
+    "top_p": 0.8,
+    "maxNewToken": 500,
+    "targetlanguage": "DE",
+    "AIasJudge": false
+  },
+  {
+    "PromptID": 2,
+    "system_message": "You are a helpful AI Assistant. Address the central theme or argument. Identify key supporting ideas",
+    "prePrompt": "create TLDR at the End of this paragraph, keep references to figures in your summary:\n",
+    "postPrompt": "TLDR:\n",
+    "infostr": "OK für Übersetzungen: Kombi 2-3",
+    "allowLongAnswer": false,
+    "temperature": 0.2,
+    "top_p": 0.8,
+    "maxNewToken": 500,
+    "targetlanguage": "EN",
+    "AIasJudge": false
+  },
+  {
+    "PromptID": 3,
+    "system_message": "Übersetze ins Deutsche. Fachbegriffe dürfen englisch bleiben.",
+    "prePrompt": "",
+    "postPrompt": "",
+    "infostr": "OK für Übersetzungen",
+    "allowLongAnswer": true,
+    "temperature": 0.2,
+    "top_p": 0.8,
+    "maxNewToken": 500,
+    "targetlanguage": "DE",
+    "AIasJudge": false
+  },
+  {
+    "PromptID": 4,
+    "system_message": "Du bist ein hilfreicher AI Assistent. Prüfe die beiden Übersetzungen SAMPLE A und SAMPLE B der Quelle SOURCE und nenne die bessere Übersetzung. Achte darauf, daß die Übersetzung besonders gut verständlich ist und eine moderne Wortewahl nutzt. Nenne zunächst die bessere Übersetzung im Stil von:\\##SAMPLE B\\n Begründung: Begründe in die Entscheidung in einem einzelnen Satz.",
+    "prePrompt": "",
+    "postPrompt": "",
+    "infostr": "Test multipleSources",
+    "allowLongAnswer": true,
+    "temperature": 0.1,
+    "top_p": 0.9,
+    "maxNewToken": 500,
+    "targetlanguage": "DE",
+    "AIasJudge": true
+  },
+  {
+    "PromptID": 5,
+    "system_message": "Du bist ein hilfreicher AI Assistent. Prüfe, ob sich im gegebenen Text ein Satz exakt wiederholt. Antworte im Stil von \\##JA\\n oder \\##NEIN\\n",
+    "prePrompt": "",
+    "postPrompt": "",
+    "infostr": "Test Duplikate, funktioniert ab Llama 3b",
+    "allowLongAnswer": true,
+    "temperature": 0,
+    "top_p": 1,
+    "maxNewToken": 5,
+    "targetlanguage": "DE",
+    "AIasJudge": false
+  },
+  {
+    "PromptID": 6,
+    "system_message": "Du bist ein neuer Prompt und magst Prompts zum Frühstück und zum Abendessen.",
+    "prePrompt": "",
+    "postPrompt": "",
+    "infostr": "Nur ein Test",
+    "allowLongAnswer": false,
+    "temperature": 0.2,
+    "top_p": 0.8,
+    "maxNewToken": 100,
+    "targetlanguage": "DE",
+    "AIasJudge": false
+  }
+]

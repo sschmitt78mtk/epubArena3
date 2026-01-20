@@ -1,0 +1,29 @@
+td {
+    width: 60ch;
+} 
+
+img {
+    max-height: 50vh;
+    max-width: 80vw;
+} 
+
+.etable {
+    text-align: left;
+}
+
+td:nth-child(1) 
+{
+    font-size: 0.2em;
+
+}
+
+.chunkid 
+{
+	font-size: x-small;
+}
+
+img:hover {
+	transform: scale(2); 
+    cursor: pointer;
+}
+
