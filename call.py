@@ -44,7 +44,7 @@ class llmcaller: # pylint: disable=unused-variable
             except Exception as e:
                 log.error(f'Fehler beim laden von {model_path_str}, {str(e)}')
                
-    def request(self, instructtext: str, activepromptset : promptset | None) -> str | None:
+    def request(self, instructtext: str, activepromptset : promptset | None, max_tokenoverride = 0) -> str | None:
         if self.simulate: return 'SIMOK'
         if activepromptset is None:
             log.error('Request activepromptset is None')
@@ -61,8 +61,8 @@ class llmcaller: # pylint: disable=unused-variable
                 stream=False,
                 seed = self.seed,
                 temperature = self.temperature,
-                top_p = self.top_p,
-                max_tokens = self.max_tokens
+                top_p = self.top_p, 
+                max_tokens = max_tokenoverride if max_tokenoverride > 0 else self.max_tokens # allow override for heading
                 )
             answer = response.choices[0].message.content
             return answer
