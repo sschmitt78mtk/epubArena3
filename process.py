@@ -54,7 +54,9 @@ class processor:
                         f' ({chunkitem.chunktype})')
                 if chunkitem.chunktype == 'heading' and config.cfg.translateHeading:
                     # abweichender Systemprompt für Überschriften nötig?
-                    nextcontent = llm.request(self._inputtext_safe(chunkitem.content), self.prompt)
+                    headingwordcount = chunkitem.content.count(' ') + 1 # minimum 1 Word
+                    maxtokenheading = headingwordcount * 4 # translation of heading is max. 3x wordcount
+                    nextcontent = llm.request(self._inputtext_safe(chunkitem.content), self.prompt, maxtokenheading)
                     #nextcontent = llm.request(self._inputtext_safe(chunkitem.content), config.get_promptsetByID(config.AllPromptset,12))
                 elif chunkitem.chunktype == 'heading':
                     nextcontent = self._inputtext_safe(chunkitem.content)
