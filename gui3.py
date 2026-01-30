@@ -1,5 +1,6 @@
 import os
 import pickle
+import glob
 
 import webbrowser 
 #import threading # für webbrowser in eigenen Thread
@@ -7,13 +8,15 @@ import time # für webbrowser
 import html
 
 import json
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+import sys
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 
 import config
 import ErrorLog
 import epubArena3
 import store
-from prompts import promptset, load_promptsets, save_promptsets
+from prompts import Promptset, load_promptsets, save_promptsets
 
 app = Flask(__name__, static_url_path='/static')    
 
@@ -28,13 +31,13 @@ def upload_file(): # pylint: disable=unused-variable
     file = request.files["file"]
     if file.filename == "":
         return jsonify({"error": "Keine Datei ausgewählt"}), 400       
-    file_path = os.path.join(config.pathinp + file.filename)
+    file_path = os.path.join(config.PATH_INP + str(file.filename))
     if str(file_path).endswith('epub'):
         file.save(file_path)
         statustext = f"Datei {file_path} erfolgreich hochgeladen"
          
-        config.cfg.gePubFilename = file.filename
-        estoreinfo = store.loadstore(file.filename)
+        config.cfg.gePubFilename = str(file.filename)
+        estoreinfo = store.loadstore(str(file.filename))
         ErrorLog.log.printlog(f'Info: {estoreinfo.info()}')
     else: 
         statustext = "nicht gespeichert, nur .epub-Dateien können verarbeitet werden."
@@ -50,40 +53,47 @@ def index(): # pylint: disable=unused-variable
     Errors = ''
     if request.method == "POST":
         if "start" in request.form:  # Falls der "START"-Button gedrückt wurde
-            if config.appRunning:
+            if config.app_running:
                 ErrorLog.log.printlog('Web: Start noch nicht möglich (laufender Prozess wird beendet)')
-                config.continueProcess = False
+                config.continue_process = False
             else:
                 Errors = '' # Prüfen, ob Werte sinnvoll
-                config.cfg.current_OPENAI_API_BASE = request.form.get("current_OPENAI_API_BASE")
-                config.cfg.current_OPEN_API_MODELNAME = request.form.get("current_OPEN_API_MODELNAME")
-                config.cfg.current_OPENAI_API_KEY = request.form.get("current_OPENAI_API_KEY")
-                config.cfg.modelname = request.form.get("modelname")
-                config.cfg.modelnameTranslation = request.form.get("modelnameTranslation")
-                config.cfg.source4prompt2 = request.form.get("source4prompt2")
-                config.cfg.translateHeading = "translateHeading" in request.form
-                config.cfg.cestart = int(request.form.get("cestart"))
-                config.cfg.cestop = int(request.form.get("cestop"))
-                config.cfg.batchJobs = "batchJobs" in request.form
-                config.cfg.forceRedo = "forceRedo" in request.form
-                config.cfg.previewOnAutosave = "previewOnAutosave" in request.form
-                config.cfg.publishOnly = "publishOnly" in request.form
-                config.cfg.useMarkdown = "useMarkdown" in request.form
-                config.cfg.LLMfromFile = "LLMfromFile" in request.form
-                config.cfg.uselangchain = "uselangchain" in request.form
-                config.cfg.chunker_maxp = int(request.form.get("chunker_maxp"))
-                config.cfg.chunker_maxwords = int(request.form.get("chunker_maxwords"))
-                config.cfg.Prompt1No = int(request.form.get("promptno_1"))
-                config.cfg.Prompt2No = int(request.form.get("promptno_2"))
+                # Update config using __dict__ to avoid static typing issues in IDEs
+                config.cfg.__dict__['current_openai_api_base'] = request.form.get("current_openai_api_base") or ""
+                config.cfg.__dict__['current_open_api_modelname'] = request.form.get("current_open_api_modelname") or ""
+                config.cfg.__dict__['current_openai_api_key'] = request.form.get("current_openai_api_key") or ""
+                config.cfg.__dict__['modelname'] = request.form.get("modelname") or ""
+                config.cfg.__dict__['modelname_translation'] = request.form.get("modelname_translation") or ""
+                config.cfg.__dict__['source4prompt2'] = request.form.get("source4prompt2") or ""
+                config.cfg.__dict__['translate_heading'] = "translate_heading" in request.form
+                ce_start_val = request.form.get("ce_start")
+                ce_stop_val = request.form.get("ce_stop")
+                config.cfg.ce_start = int(ce_start_val) if ce_start_val is not None and ce_start_val != "" else 0
+                config.cfg.ce_stop = int(ce_stop_val) if ce_stop_val is not None and ce_stop_val != "" else 0
+                config.cfg.batch_jobs = "batch_jobs" in request.form
+                config.cfg.force_redo = "force_redo" in request.form
+                config.cfg.processor_autosave = "processor_autosave" in request.form
+                config.cfg.publish_only = "publish_only" in request.form
+                config.cfg.use_markdown = "use_markdown" in request.form
+                config.cfg.llm_from_file = "llm_from_file" in request.form
+                config.cfg.use_langchain = "use_langchain" in request.form
+                cp = request.form.get("chunker_maxp")
+                cww = request.form.get("chunker_maxwords")
+                config.cfg.chunker_maxp = int(cp) if cp is not None and cp != "" else 0
+                config.cfg.chunker_maxwords = int(cww) if cww is not None and cww != "" else 0
+                p1 = request.form.get("prompt1_no")
+                p2 = request.form.get("prompt2_no")
+                config.cfg.prompt1_no = int(p1) if p1 is not None and p1 != "" else 0
+                config.cfg.prompt2_no = int(p2) if p2 is not None and p2 != "" else 0
                 
-                if not config.cfg.batchJobs and not config.cfg.gePubFilename:
+                if not config.cfg.batch_jobs and not config.cfg.gePubFilename:
                     Errors = '\nkein ePub ausgewählt (und kein batchJobs angehakt)\n'
                 if not config.cfg.gePubFilename.endswith('.epub'):
                     Errors = '\nkein ePub ausgewählt (nur .epub  können verarbeitet werden)\n'
             if Errors == '':
-                config.cfg.updateMain()    
+                config.cfg.update_main()    
                 ErrorLog.log.printlog('Web: Start')
-                config.continueProcess = True 
+                config.continue_process = True 
                 print(config.cfg.__dict__)
                 save_lastConfig()
                 epubArena3.run()
@@ -91,10 +101,12 @@ def index(): # pylint: disable=unused-variable
                 ErrorLog.log.printlog(f'KEIN Start weil: {Errors} ')
             
         elif "stop" in request.form:  # Falls der "STOP"-Button gedrückt wurde
-            config.continueProcess = False
+            config.continue_process = False
             ErrorLog.log.printlog('Web: Stop (aktueller chunk wird noch beendet)')
         elif "delete" in request.form:
             modelname2delete = request.form.get("modeltodelete")
+            if modelname2delete is None:
+                modelname2delete = ""
             ErrorLog.log.printlog(f'Web: Versuche Löschen der Translation mit Name "{modelname2delete}"')
             try:
                 estoreinfo = store.loadstore(config.cfg.gePubFilename)
@@ -119,14 +131,14 @@ def get_messages(): # pylint: disable=unused-variable
     return jsonify(statustext = statustext, log_last_10_lines = log_last_10_lines)
 
 @app.route("/get_prompts", methods=["GET"])
-def get_prompts(): # pylint: disable=unused-variable
-    prompt_objects = config.AllPromptset # [epubArena3.prompt1, epubArena3.prompt2] 
-    all_prompts = [p.__dict__ for p in prompt_objects]  # Konvertiere alle zu Dictionaries
+def get_prompts():  # pylint: disable=unused-variable
+    prompt_objects = config.AllPromptset  # [epubArena3.prompt1, epubArena3.prompt2]
+    all_prompts = [p.__dict__ for p in prompt_objects]
     return jsonify({
-        'prompts': all_prompts,  # Haupt-Array mit allen Prompts
-        'activePrompt1' : config.cfg.Prompt1No,
-        'activePrompt2' : config.cfg.Prompt2No,
-        'count': len(all_prompts)  # Optional: Anzahl der Prompts
+        'prompts': all_prompts,
+        'activePrompt1': config.cfg.prompt1_no,
+        'activePrompt2': config.cfg.prompt2_no,
+        'count': len(all_prompts)
     })
 
 @app.route('/get_api_configs')
@@ -154,16 +166,16 @@ def save_prompts2(): # pylint: disable=unused-variable
     if not isinstance(data, list):
         return jsonify(success=False, message="Ungültige Daten"), 400
 
-    prompts: list[promptset] = []
+    prompts: list[Promptset] = []
     for entry in data:
         try:
-            prompts.append(promptset.from_dict(entry))
+            prompts.append(Promptset.from_dict(entry))
         except (KeyError, TypeError) as exc:
             return jsonify(success=False, message=f"Prompt nicht vollständig: {str(exc)}"), 400
 
     try:
-        save_promptsets(prompts, config.promtsjsonfile)
-        config.AllPromptset = load_promptsets(config.promtsjsonfile) # Prompts nach dem bearbeiten neu laden
+        save_promptsets(prompts, config.PROMPTS_JSON_FILE)
+        config.AllPromptset = load_promptsets(config.PROMPTS_JSON_FILE) # Prompts nach dem bearbeiten neu laden
     except Exception as exc:
         return jsonify(success=False, message=f"Speichern fehlgeschlagen: {str(exc)}"), 500
 
@@ -174,25 +186,62 @@ def edit_prompts(): # pylint: disable=unused-variable
     current_prompts = config.AllPromptset
     return render_template("editprompts.html", prompts=[p.__dict__ for p in current_prompts])
 
+@app.route("/list_epub_files", methods=["GET"])
+def list_epub_files(): # pylint: disable=unused-variable
+    """Return a JSON list of all EPUB files in the output directory."""
+    epub_files = []
+    try:
+        # Find all .epub files in the output directory
+        pattern = os.path.join(config.PATH_OUT, "*.epub")
+        files = glob.glob(pattern)
+        
+        for file_path in sorted(files):  # Sort alphanumerically
+            filename = os.path.basename(file_path)
+            file_stat = os.stat(file_path)
+            epub_files.append({
+                "name": filename,
+                "size": file_stat.st_size,
+                "modified": file_stat.st_mtime
+            })
+    except Exception as e:
+        ErrorLog.log.printlog(f"Error listing EPUB files: {str(e)}")
+    
+    return jsonify({"files": epub_files})
+
+@app.route("/download/<filename>")
+def download_file(filename): # pylint: disable=unused-variable
+    """Serve EPUB files for download from the output directory."""
+    # Security: only allow .epub files and prevent directory traversal
+    if not filename.endswith('.epub'):
+        return jsonify({"error": "Only EPUB files can be downloaded"}), 400
+    
+    # Ensure the file exists in the output directory
+    file_path = os.path.join(config.PATH_OUT, filename)
+    if not os.path.exists(file_path):
+        return jsonify({"error": "File not found"}), 404
+    
+    # Serve the file for download
+    return send_from_directory(config.PATH_OUT, filename, as_attachment=True)
+
 def load_lastConfig() -> None:
-    pklFilename = config.pathpkl + 'laststate.pkl'
+    pklFilename = config.PATH_PKL + 'laststate.pkl'
     try:
         with open(pklFilename, 'rb') as f:
             config.cfg = pickle.load(f)
         ErrorLog.log.printlog(f'Daten aus PKL-Datei {pklFilename} geladen.')
         estoreinfo = store.loadstore(config.cfg.gePubFilename)
         estoreinfo.info()
-    except Exception as e:
-        ErrorLog.log.printlog(f'{pklFilename} konnte nicht geladen werden. {str(e)}')
+    except Exception as exc:
+        ErrorLog.log.printlog(f'{pklFilename} konnte nicht geladen werden. {str(exc)}')
 
 def save_lastConfig() -> None:
-    pklFilename = config.pathpkl + 'laststate.pkl'
+    pklFilename = config.PATH_PKL + 'laststate.pkl'
     try:
         with open(pklFilename, 'wb') as f:
             pickle.dump(config.cfg, f)
         ErrorLog.log.printlog(f'Status in PKL-Datei {pklFilename} gespeichert.')
-    except Exception as e:
-        ErrorLog.log.printlog(f'{pklFilename} konnte nicht gespeichert werden. {str(e)}')            
+    except Exception as exc:
+        ErrorLog.log.printlog(f'{pklFilename} konnte nicht gespeichert werden. {str(exc)}')
     
 def open_browser() -> None: # pylint: disable=unused-variable
     time.sleep(1) # Warte kurz, bis der Flask-Server gestartet ist

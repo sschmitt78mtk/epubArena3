@@ -35,12 +35,12 @@ import glob
 import config
 
 # pylint: disable=wrong-import-position
-if config.supportKeyboardbreak: import keyboard
+if config.SUPPORT_KEYBOARD_BREAK: import keyboard
 
 #import store
-from collect import extractor, cleaner, chunker
-from store import loadstore, publication #, get_promptsetByID, load_promptsets, save_promptsets
-from process import processor, processorMultiSource
+from collect import Extractor, Cleaner, Chunker
+from store import loadstore, Publication #, get_promptsetByID, load_promptsets, save_promptsets
+from process import Processor, ProcessorMultiSource
 from ErrorLog import log
 #from prompts import promptset, get_promptsetByID, load_promptsets, save_promptsets
 
@@ -51,49 +51,49 @@ from ErrorLog import log
 
 
 def main(ePubFilename: str) -> None:
-    config.appRunning = True
+    config.app_running = True
     ePubFilename = os.path.basename(ePubFilename) # Pfad ignorieren
-    log.setFilename(config.pathlog + ePubFilename + '.log',"errors.log")
+    log.setFilename(config.PATH_LOG + ePubFilename + '.log',"errors.log")
     log.printlog(f'Programm gestartet - {ePubFilename}')
     estore = loadstore(ePubFilename)
     estore.info()
     
-    if not estore.source.finished or config.cfg.reloadepub: # epub einlesen, wenn noch nicht beendet
-        if config.cfg.reloadepub: estore.source.chunks.clear()
-        eextractor = extractor(ePubFilename)
-        echunker = chunker(config.cfg.chunker_maxp,config.cfg.chunker_maxwords) # 20paragraphs, 350 Wörter
+    if not estore.source.finished or config.cfg.reload_epub: # epub einlesen, wenn noch nicht beendet
+        if config.cfg.reload_epub: estore.source.chunks.clear()
+        eextractor = Extractor(ePubFilename)
+        echunker = Chunker(config.cfg.chunker_maxp,config.cfg.chunker_maxwords) # 20paragraphs, 350 Wörter
         log.printlog(f'echunker: maxp {config.cfg.chunker_maxp} | maxwords {config.cfg.chunker_maxwords}')
-        ecleaner = cleaner(True) # Leerzeilen entfernen
+        ecleaner = Cleaner(True) # Leerzeilen entfernen
         eextractor.extract_chapters()
         for extractedchapter in eextractor.chapterhtmlpkg:
-            log.printlog(f'ID: {extractedchapter.chapterID} Chapter: {extractedchapter.source_chaptername}')
+            log.printlog(f'ID: {extractedchapter.chapter_id} Chapter: {extractedchapter.source_chaptername}')
             cleanedChapter = ecleaner.cleanchunks([extractedchapter])
             estore.source.chunks += echunker.chunkit(cleanedChapter)
         estore.source.set_metadata(eextractor.title,eextractor.author,eextractor.language)
         estore.source.set_finished()
         if log.errorcount > 0:
-            log.error(f'{estore.pklFilename} wurde nicht gespeichert, da es Fehler beim Einlesen des epub gab.')
+            log.error(f'{estore.pkl_filename} wurde nicht gespeichert, da es Fehler beim Einlesen des epub gab.')
         else: estore.save()
 
       
-    chunksTotal = estore.source.numberOfChunks
+    chunksTotal = estore.source.number_of_chunks
     log.printlog(f'Chunks total: {str(chunksTotal)}')  
     log.saveFile()
  
     Step1TName = config.cfg.modelname + '-' + str(config.cfg.prompt1.PromptID)
     
-    if config.cfg.modelnameTranslation != "": 
-        Step2TName = config.cfg.modelnameTranslation + '-' + str(config.cfg.prompt2.PromptID)
+    if config.cfg.modelname_translation != "": 
+        Step2TName = config.cfg.modelname_translation + '-' + str(config.cfg.prompt2.PromptID)
     else:  
         Step2TName = config.cfg.modelname + '-' + str(config.cfg.prompt2.PromptID)
     
-    if not config.cfg.publishOnly:
+    if not config.cfg.publish_only:
         if config.cfg.prompt1 and config.cfg.prompt1.PromptID != 0: # Summary durchführen
             Step1T = estore.getTranslationByModelName(Step1TName) # erstellen
             Step1T.set_metadata(estore.source.title,estore.source.author,estore.source.language)
-            Step1T_processor = processor(estore.source,Step1T,estore,Step1TName,config.cfg.prompt1)
-            Step1T_processor.overwrite = config.cfg.forceRedo
-            Step1T_processor.do(config.cfg.cestart,config.cfg.cestop)
+            Step1T_processor = Processor(estore.source,Step1T,estore,Step1TName,config.cfg.prompt1)
+            Step1T_processor.overwrite = config.cfg.force_redo
+            Step1T_processor.do(config.cfg.ce_start,config.cfg.ce_stop)
         if config.cfg.prompt2 and config.cfg.prompt2.PromptID != 0: # Übersetzung
             Step2T = estore.getTranslationByModelName(Step2TName) # erstellen
             Step2T.set_metadata(estore.source.title,estore.source.author,'de-de')
@@ -103,24 +103,24 @@ def main(ePubFilename: str) -> None:
                     source4step2 = estore.getTranslationByModelName(Step1TName) # Step1 als Quelle nehmen
                 else:
                     source4step2 = estore.source # Source als Quelle nehmen
-                Step2T_processor = processor(source4step2,Step2T,estore,Step2TName,config.cfg.prompt2)
+                Step2T_processor = Processor(source4step2,Step2T,estore,Step2TName,config.cfg.prompt2)
             elif ';' not in config.cfg.source4prompt2: # angegebene Übersetzung als Quelle nehmen
                 source4step2 = estore.getTranslationByModelName(config.cfg.source4prompt2)
-                Step2T_processor = processor(source4step2,Step2T,estore,Step2TName,config.cfg.prompt2)
+                Step2T_processor = Processor(source4step2,Step2T,estore,Step2TName,config.cfg.prompt2)
             else: # nicht leer + Semikolon im Namen -> mehrer Source-Models
                 multiplesource4step2 = estore.getmultipleTranslationsByModelNames(config.cfg.source4prompt2)
-                Step2T_processor = processorMultiSource(estore.source, multiplesource4step2,Step2T,estore,Step2TName,config.cfg.prompt2)
+                Step2T_processor = ProcessorMultiSource(estore.source, multiplesource4step2,Step2T,estore,Step2TName,config.cfg.prompt2)
                 
-            Step2T_processor.overwrite = config.cfg.forceRedo
-            Step2T_processor.do(config.cfg.cestart,config.cfg.cestop)
+            Step2T_processor.overwrite = config.cfg.force_redo
+            Step2T_processor.do(config.cfg.ce_start,config.cfg.ce_stop)
               
 
     estore.removeEmptyTranslations()
     
     # Work und Publish
-    publishHTML = publication(estore)
+    publishHTML = Publication(estore)
     publishHTML.html_filename = ePubFilename + '_SBS.html'
-    publishHTML.genHTML_SideBySide([estore.source] + estore.translations,'templates/defaultsbs.css',False,config.cfg.cestart,config.cfg.cestop)
+    publishHTML.genHTML_SideBySide([estore.source] + estore.translations,'templates/defaultsbs.css',False,config.cfg.ce_start,config.cfg.ce_stop)
     try:
         publishHTML.genEPUB(estore.getTranslationByModelName(Step2TName)) # die letzte Übersetzung/Summary publizieren
     except Exception as e:
@@ -131,28 +131,28 @@ def main(ePubFilename: str) -> None:
     log.printlog(f'{ePubFilename} - beendet.')
     log.saveFile()
     log.errorcount = 0
-    config.appRunning = False
-    config.continueProcess = True # für nächste Verarbeitung freigeben
+    config.app_running = False
+    config.continue_process = True # für nächste Verarbeitung freigeben
     
 
-if config.supportKeyboardbreak:
+if config.SUPPORT_KEYBOARD_BREAK:
     def on_key_event(event):
         if event.name == "q":  # Falls "q" gedrückt wurde, Programm abbrechen
             sure = str(input('Wirklich beenden, tippe: ja \n')) # pylint: disable=bad-builtin
             if 'ja' in sure.lower() or 'j' in sure.lower():
                 log.printlog('Abbruch durch Nutzer.')
-                config.continueProcess = False
+                config.continue_process = False
         
     keyboard.on_press(on_key_event) # Event-Listener starten 
   
 def run() -> None:
-    if config.cfg.batchJobs:
-        for file in glob.glob(config.pathinp + "*.epub"):
-            if config.continueProcess: 
+    if config.cfg.batch_jobs:
+        for file in glob.glob(config.PATH_INP + "*.epub"):
+            if config.continue_process: 
                 main(file)
             else:
                 log.printlog(f'Skipped {file} (Nutzerabbruch)')
-    elif os.path.exists(config.pathinp + config.cfg.gePubFilename):
+    elif os.path.exists(config.PATH_INP + config.cfg.gePubFilename):
         main(config.cfg.gePubFilename)
     else:
         log.printlog(f'Abbruch, die Datei "{config.cfg.gePubFilename}" existiert nicht.')

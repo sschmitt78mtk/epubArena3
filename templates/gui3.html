@@ -121,9 +121,9 @@
             if (!config) return;
             
             // Overwrite all API fields with selected configuration
-            document.getElementById('current_OPENAI_API_BASE').value = config.OPENAI_API_BASE || '';
-            document.getElementById('current_OPENAI_API_KEY').value = config.OPENAI_API_KEY || '';
-            document.getElementById('current_OPEN_API_MODELNAME').value = config.OPEN_API_MODELNAME || '';
+            document.getElementById('current_openai_api_base').value = config.OPENAI_API_BASE || '';
+            document.getElementById('current_openai_api_key').value = config.OPENAI_API_KEY || '';
+            document.getElementById('current_open_api_modelname').value = config.OPEN_API_MODELNAME || '';
             document.getElementById('modelname').value = config.modelname || '';
         }
 
@@ -136,71 +136,75 @@
 </head>
 
 <body>
+    <div class="site-header">
+        <div class="logo">epubArena 3</div>
+        <nav class="site-nav">
+            <a href="{{ url_for('uploadfile') }}">Upload</a>
+            <a href="#downloads-section">Downloads</a>
+            <a href="{{ url_for('edit_prompts') }}">Prompts bearbeiten</a>
+        </nav>
+    </div>
     <h2>epubArena 3</h2>
     <form method="POST">
         <div class="container">
-            <div id="topleft">
-                <label class="description">{{ gePubFilename }}</label>
-                <a href="{{ url_for('uploadfile') }}">Andere Datei Hochladen</a>
+            <div id="topleft" class="card">
+                <label class="description">GePubFilename: {{ gePubFilename }}</label>
                 <br>
                 <label class="description" for="api_config_select">Load API Config:</label>
                 <select id="api_config_select" class="nameinput" onchange="loadAPIConfig(this.value)">
                     <option value="">-- Select Configuration --</option>
                 </select>
                 <br>
-                <label class="description" for="current_OPENAI_API_BASE">current...API_BASE:</label>
-                <input type="text" class="nameinput" id="current_OPENAI_API_BASE" name="current_OPENAI_API_BASE" value="{{current_OPENAI_API_BASE}}"><br>
-                <label class="description" for="current_OPENAI_API_KEY">current...API_KEY:</label>
-                <input type="text" class="nameinput apikey" id="current_OPENAI_API_KEY" name="current_OPENAI_API_KEY" value="{{current_OPENAI_API_KEY}}"><br>
-                <label class="description" for="current_OPEN_API_MODELNAME">current...API_MODELNAME:</label>
-                <input type="text" class="nameinput" id="current_OPEN_API_MODELNAME" name="current_OPEN_API_MODELNAME" value="{{current_OPEN_API_MODELNAME}}"><br>
-                
+                <label class="description" for="current_openai_api_base">current_openai_api_base:</label>
+                <input type="text" class="nameinput" id="current_openai_api_base" name="current_openai_api_base" value="{{ current_openai_api_base }}"><br/>
+                <label class="description" for="current_openai_api_key">current_openai_api_key:</label>
+                <input type="text" class="nameinput apikey" id="current_openai_api_key" name="current_openai_api_key" value="{{ current_openai_api_key }}"><br/>
+                <label class="description" for="current_open_api_modelname">current_open_api_modelname:</label>
+                <input type="text" class="nameinput" id="current_open_api_modelname" name="current_open_api_modelname" value="{{ current_open_api_modelname }}"><br/>
+
                 <label class="description" for="modelname">Modelname:</label>
-                <input type="text" class="nameinput" id="modelname" name="modelname" value="{{modelname}}"><br>
+                <input type="text" class="nameinput" id="modelname" name="modelname" value="{{ modelname }}"><br/>
+                <label class="description" for="modelname_translation">Modelname (translation):</label>
+                <input type="text" class="nameinput" id="modelname_translation" name="modelname_translation" value="{{ modelname_translation }}"><br/>
+                <label class="description" for="source4prompt2">source4prompt2:</label>
+                <input type="text" class="nameinput" id="source4prompt2" name="source4prompt2" value="{{ source4prompt2 }}"><br/>
 
-                <label class="description" for="modelnameTranslation">Modelname (translation):</label>
-                <input type="text" class="nameinput" id="modelnameTranslation" name="modelnameTranslation" value="{{modelnameTranslation}}"><br>
+                <label class="description" for="ce_start">start</label>
+                <input type="number" class="numberinput" name="ce_start" id="ce_start" value="{{ ce_start }}" min="0">
+                <label class="description" for="ce_stop">stop</label>
+                <input type="number" class="numberinput" name="ce_stop" id="ce_stop" value="{{ ce_stop }}" min="0"><br/>
 
-                <label class="description" for="source4prompt2">source4prompt2 (leer lassen):</label>
-                <input type="text" class="nameinput" id="source4prompt2" name="source4prompt2" value="{{source4prompt2}}"><br>
-                
-                <label class="description" for="cestart">start</label>
-                <input type="number" class="numberinput" name="cestart" id="cestart" value="{{cestart}}" min="0">
-                <label class="description" for="cestop">stop</label>
-                <input type="number" class="numberinput" name="cestop" id="cestop" value="{{cestop}}" min="0"><br>
+                <input type="checkbox" name="translate_heading" id="translate_heading" {% if translate_heading %}checked{% endif %}>
+                <label for="translate_heading">translate_heading</label><br/>
+                <input type="checkbox" name="batch_jobs" id="batch_jobs" {% if batch_jobs %}checked{% endif %}>
+                <label for="batch_jobs">batch_jobs (Alle epub-Dateien in 'input')</label><br/>
+                <input type="checkbox" name="force_redo" id="force_redo" {% if force_redo %}checked{% endif %}>
+                <label for="force_redo">force_redo</label><br/>
+                <input type="checkbox" name="publish_only" id="publish_only" {% if publish_only %}checked{% endif %}>
+                <label for="publish_only">publish_only</label><br/>
+                <input type="checkbox" name="use_markdown" id="use_markdown" {% if use_markdown %}checked{% endif %}>
+                <label for="use_markdown">use_markdown</label><br/>
+                <input type="checkbox" name="llm_from_file" id="llm_from_file" {% if llm_from_file %}checked{% endif %}>
+                <label for="llm_from_file">llm_from_file</label><br/>
+                <input type="checkbox" name="use_langchain" id="use_langchain" {% if use_langchain %}checked{% endif %}>
+                <label for="use_langchain">use_langchain</label><br/>
 
-                <input type="checkbox" name="translateHeading" id="translateHeading" {{ "checked" if translateHeading else "" }}>
-                <label for="translateHeading">translateHeading</label><br>
-                <input type="checkbox" name="batchJobs" id="batchJobs" {{ "checked" if batchJobs else "" }}>
-                <label for="batchJobs">batchJobs (Alle epub-Dateien in 'input')</label><br>
-                <input type="checkbox" name="forceRedo" id="forceRedo" {{ "checked" if forceRedo else "" }}>
-                <label for="forceRedo">forceRedo</label><br>     
-                <!-- <input type="checkbox" name="previewOnAutosave" id="previewOnAutosave" {{ "checked" if previewOnAutosave
-                    else "" }}>
-                <label for="previewOnAutosave">previewOnAutosave</label><br> -->
-                <input type="checkbox" name="publishOnly" id="publishOnly" {{ "checked" if publishOnly else "" }}>
-                <label for="publishOnly">publishOnly</label><br>
-                <input type="checkbox" name="useMarkdown" id="useMarkdown" {{ "checked" if useMarkdown else "" }}>
-                <label for="useMarkdown">useMarkdown (markdown2html)</label><br>
-                <input type="checkbox" name="LLMfromFile" id="LLMfromFile" {{ "checked" if LLMfromFile else "" }}>
-                <label for="LLMfromFile">LLMfromFile</label><br>
-
-                <input type="checkbox" name="uselangchain" id="uselangchain" {{ "checked" if uselangchain else "" }}>
-                <label for="uselangchain">uselangchain</label><br>
-                
                 <label for="chunker_maxp" class="description">chunker_maxp</label>
-                <input type="number" class="numberinput" name="chunker_maxp" id="chunker_maxp" value="{{chunker_maxp}}"
-                    min="0">
+                <input type="number" class="numberinput" name="chunker_maxp" id="chunker_maxp" value="{{ chunker_maxp }}" min="0">
                 <label for="chunker_maxwords" class="description">chunker_maxwords</label>
-                <input type="number" class="numberinput" name="chunker_maxwords" id="chunker_maxwords"
-                    value="{{chunker_maxwords}}" min="0"><br>
+                <input type="number" class="numberinput" name="chunker_maxwords" id="chunker_maxwords" value="{{ chunker_maxwords }}" min="0"><br/>
 
-
+                <label for="prompt1_no">prompt1_no</label>
+                <input type="text" id="prompt1_no" name="prompt1_no" value="{{ prompt1_no }}" readonly>
+                <label for="prompt2_no">prompt2_no</label>
+                <input type="text" id="prompt2_no" name="prompt2_no" value="{{ prompt2_no }}" readonly><br/>
             </div>
+
             <div id="topright">
                 <div id="logfileinfodiv"><p id="logfileinfo"></p></div>
             </div>
-        </div>
+	</div>
+    <div id="cinema1">
 
         <a href="{{ url_for('edit_prompts') }}">Prompts bearbeiten</a>
 
@@ -222,7 +226,6 @@
                 <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_1" name="promptno_1" value="55" readonly>
                     <button type="button" onclick="prev(1)">↑</button>
                     <button type="button" onclick="next(1)">↓</button>
-                    <button type="button" onclick="new(1)">*</button>
                 </td>
                 <td><textarea class="promptinput readonly" id="system_prompt_1" name="system_prompt_1" rows="3" readonly>system_prompt_1</textarea></td>
                 <td><textarea class="promptinput readonly" id="pre_prompt_1" name="pre_prompt_1" rows="3" readonly>pre_prompt_1</textarea></td>
@@ -237,7 +240,6 @@
                 <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_2" name="promptno_2" value="199" readonly>
                     <button type="button" onclick="prev(2)">↑</button>
                     <button type="button" onclick="next(2)">↓</button>
-                    <button type="button" onclick="new(2)">*</button>
                 </td>
                 <td><textarea class="promptinput readonly" id="system_prompt_2" name="system_prompt_2" rows="3" readonly>system_prompt_2</textarea></td>
                 <td><textarea class="promptinput readonly" id="pre_prompt_2" name="pre_prompt_2" rows="3" readonly>pre_prompt_2</textarea></td>
@@ -249,6 +251,8 @@
             </tr>
 
         </table>
+        </div>
+        <div id="cinema2">
         <br>
         <button class="startstopbutton" type="submit" name="start">START</button>
     </form>
@@ -261,10 +265,19 @@
         <input type="text" class="modeltodelete" id="modeltodelete" name="modeltodelete" value="{{modeltodelete}}"><br>
         <button class="deletebutton" type="submit" name="delete">DELETE</button>
     </form>
+</div>
+    
+    <!-- EPUB Downloads Section -->
+    <div id="downloads-section">
+        <h3>EPUB Downloads</h3>
+        <button type="button" onclick="refreshDownloads()" class="refresh-button">Liste aktualisieren</button>
+        <div id="downloads-list">
+            <p>Lade EPUB-Dateien...</p>
+        </div>
+    </div>
+    
     <p id="statusrow"></p>
-    <!-- <button type="button" onclick="getPrompts();">getPrompts</button>  -->
-    <!-- muß außerhalb von <form> sein, weil sonst async-fetch nihct klappt-->
-    <!-- type="button" deaktiviert das Submit-Verhalten-->
+    
     <script>
         function prev(a) {
             const isFirst = a === 1;
@@ -294,9 +307,51 @@
             return confirm("Die Übersetzung wirklich löschen?");
         }
 
+        // EPUB Download Functions
+        function refreshDownloads() {
+            fetch("/list_epub_files")
+                .then(response => response.json())
+                .then(data => {
+                    const downloadsList = document.getElementById("downloads-list");
+                    downloadsList.innerHTML = "";
+                    
+                    if (data.files.length === 0) {
+                        downloadsList.innerHTML = "<p>Keine EPUB-Dateien verfügbar.</p>";
+                        return;
+                    }
+                    
+                    data.files.forEach(file => {
+                        const fileSize = formatFileSize(file.size);
+                        const modifiedDate = new Date(file.modified * 1000).toLocaleString();
+                        
+                        const fileItem = document.createElement("div");
+                        fileItem.className = "download-item";
+                        fileItem.innerHTML = `
+                            <span class="filename">${file.name}</span>
+                            <span class="fileinfo">${fileSize} - ${modifiedDate}</span>
+                            <a href="/download/${encodeURIComponent(file.name)}" class="download-button">Download</a>
+                        `;
+                        downloadsList.appendChild(fileItem);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching EPUB files:", error);
+                    document.getElementById("downloads-list").innerHTML = "<p>Fehler beim Laden der Dateiliste.</p>";
+                });
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return "0 Bytes";
+            const k = 1024;
+            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+        }
+
         setInterval(updateMessages, 2000); // Nachrichten alle 2 Sekunden abrufen
         getPrompts();
         loadAPIConfigOptions();
+        refreshDownloads(); // Load EPUB files on page load
 
     </script>
 </body>

@@ -2,7 +2,7 @@ from __future__ import annotations # pylint: disable=unused-variable
 from typing import Any
 import json
 
-class promptset:
+class Promptset:
     def __init__(self, PromptID: int, system_message: str, prePrompt: str, postPrompt: str, infostr: str, 
                  allowLongAnswer = True, temperature = 0.2, top_p = 0.8, maxNewToken = 500, targetlanguage = 'DE', AIasJudge = False):
         self.PromptID = PromptID
@@ -69,19 +69,19 @@ class promptset:
             AIasJudge=data.get('AIasJudge', 'DE')
         )
 
-def save_promptsets(promptsets: list[promptset], filename: str) -> None: # pylint: disable=unused-variable
+def save_promptsets(promptsets: list[Promptset], filename: str) -> None: # pylint: disable=unused-variable
     """Speichert PromptSets als JSON"""
     data = [ps.to_dict() for ps in promptsets]
     with open(filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
-def load_promptsets(filename: str) -> list[promptset]: # pylint: disable=unused-variable
+def load_promptsets(filename: str) -> list[Promptset]: # pylint: disable=unused-variable
     """Lädt PromptSets aus JSON"""
     with open(filename, 'r', encoding='utf-8') as f:
         data = json.load(f)
-    return [promptset.from_dict(item) for item in data]
+    return [Promptset.from_dict(item) for item in data]
 
-def get_promptsetByID (Promptsetlist: list[promptset], PromptID: int) -> promptset | None: # pylint: disable=unused-variable
+def get_promptsetByID (Promptsetlist: list[Promptset], PromptID: int) -> Promptset | None: # pylint: disable=unused-variable
     for pset in Promptsetlist:
         if pset.PromptID == PromptID: return pset
     return None

@@ -1,0 +1,11 @@
+.vscode/
+.venv
+Thumbs.db
+input/
+logs/
+output/
+pkl/
+*.log
+*.md
+api_config.json
+__pycache__/

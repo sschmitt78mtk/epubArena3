@@ -1,7 +1,7 @@
 from __future__ import annotations # pylint: disable=unused-variable
 from openai import OpenAI
 from ErrorLog import log
-from prompts import promptset
+from prompts import Promptset
 import config
 
 #from langchain_openai import ChatOpenAI
@@ -11,9 +11,9 @@ import config
 # from langchain_core.output_parsers import StrOutputParser
 # from summary import getsummary
     
-class llmcaller: # pylint: disable=unused-variable
-    def __init__(self, model = config.cfg.current_OPEN_API_MODELNAME, api_base_url = config.cfg.current_OPENAI_API_BASE,
-                 api_key = config.cfg.current_OPENAI_API_KEY, max_tokens = 500, simulate = False):
+class Llmcaller: # pylint: disable=unused-variable
+    def __init__(self, model = config.cfg.current_open_api_modelname, api_base_url = config.cfg.current_openai_api_base,
+                 api_key = config.cfg.current_openai_api_key, max_tokens = 500, simulate = False):
         self.max_tokens = max_tokens
         self.seed = 10
         self.mode = 'instruct'
@@ -31,7 +31,7 @@ class llmcaller: # pylint: disable=unused-variable
                     base_url=self.api_base_url,
                     api_key=self.api_key
                 )
-        if config.cfg.LLMfromFile:
+        if config.cfg.llm_from_file:
             try:
                 from llama_cpp import Llama
                 model_path_str = "./" + self.model
@@ -44,13 +44,13 @@ class llmcaller: # pylint: disable=unused-variable
             except Exception as e:
                 log.error(f'Fehler beim laden von {model_path_str}, {str(e)}')
                
-    def request(self, instructtext: str, activepromptset : promptset | None, max_tokenoverride = 0) -> str | None:
+    def request(self, instructtext: str, activepromptset : Promptset | None, max_tokenoverride = 0) -> str | None:
         if self.simulate: return 'SIMOK'
         if activepromptset is None:
             log.error('Request activepromptset is None')
             return None
         requesttext = activepromptset.prePrompt + instructtext + activepromptset.postPrompt
-        if config.cfg.LLMfromFile: return self.directLLMfromFile(activepromptset.system_message, requesttext)        
+        if config.cfg.llm_from_file: return self.directLLMfromFile(activepromptset.system_message, requesttext)        
         try:
             response = self.local_llm.chat.completions.create(
                 model=self.model,
@@ -67,7 +67,7 @@ class llmcaller: # pylint: disable=unused-variable
             answer = response.choices[0].message.content
             return answer
         except Exception as e:
-            log.error(f'llmcaller requestOAi error {str(e)}')
+            log.error(f'Llmcaller requestOAi error {str(e)}')
             return None
         
     # def requestVialangchain(self, contentstr: str):
@@ -99,6 +99,6 @@ class llmcaller: # pylint: disable=unused-variable
                 answer = response["choices"][0]["text"]
                 return str(answer.strip())
             except Exception as e:
-                log.error(f'llmcaller directLLM error {str(e)}')
+                log.error(f'Llmcaller directLLM error {str(e)}')
                 return None
 
