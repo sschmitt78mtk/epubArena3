@@ -1,6 +1,6 @@
 # epubArena3 - EPUB Processing and Translation Pipeline
 
-epubArena3 is a sophisticated EPUB processing and translation pipeline that uses Large Language Models (LLMs) to transform EPUB files through customizable workflows including summarization, translation, and content analysis. The system provides both command-line and web-based GUI interfaces for managing EPUB processing tasks.
+epubArena3 is a EPUB processing and translation pipeline that uses Large Language Models (LLMs) to transform EPUB files through customizable workflows including summarization, translation, and content analysis. The system provides both command-line and web-based GUI interfaces for managing EPUB processing tasks.
 
 ## Overview
 
