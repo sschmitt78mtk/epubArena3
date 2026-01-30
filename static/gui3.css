@@ -6,8 +6,8 @@
 #logfileinfo {
     border: 1px solid #ddd;
     background-color: #f9f9f9;
-    min-height: 18em;
-    max-height: 18em;
+    min-height: 32em;
+    max-height: 32em;
     overflow-y: auto;
     /* Scrollbalken anzeigen */
 }
@@ -26,7 +26,7 @@
     /* Platziert die Divs mit Abstand dazwischen */
 }
 
-#topleft {
+/* #topleft {
     width: 100ch;
     box-sizing: border-box;
     
@@ -35,7 +35,7 @@
 #topright {
     width: 50%;
     box-sizing: border-box;
-}
+} */
 
 .description {
     min-width: 50ch;
@@ -82,4 +82,198 @@
 .apikey:active {
     color: black;
     background-color: white;
+}
+
+/* EPUB Downloads Section */
+#downloads-section {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+}
+
+#downloads-section h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.refresh-button {
+    margin-bottom: 15px;
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.refresh-button:hover {
+    background-color: #45a049;
+}
+
+#downloads-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    background-color: white;
+    padding: 10px;
+}
+
+.download-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.download-item:last-child {
+    border-bottom: none;
+}
+
+.download-item .filename {
+    flex: 1;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 10px;
+}
+
+.download-item .fileinfo {
+    flex: 1;
+    color: #666;
+    font-size: 12px;
+    margin-right: 10px;
+    text-align: right;
+}
+
+.download-button {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.download-button:hover {
+    background-color: #0056b3;
+    text-decoration: none;
+}
+
+/* Card styling for facelift (desktop) */
+.card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    background: #ffffff;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+}
+
+/* Desktop-first facelift: desktop-only two-column layout with card-style panels */
+:root {
+    --bg: #f6f8fa;
+    --surface: #ffffff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --border: #d1d5db;
+    --shadow: 0 2px 8px rgba(0,0,0,.08);
+    --primary: #2563eb;
+    --primary-2: #1d4ed8;
+    --success: #10b981;
+}
+
+html, body {
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* Header bar for desktop layout (added for facelift) */
+.site-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+}
+.site-header .logo {
+    font-weight: 700;
+    font-size: 20px;
+}
+.site-header .site-nav a {
+    margin-left: 14px;
+    color: var(--text);
+    text-decoration: none;
+}
+.site-header .site-nav a:hover { text-decoration: underline; }
+
+/* Page container uses a fixed-width, desktop-first grid */
+.container {
+    width: 95%;
+    margin: 20px auto;
+    min-height: 33em;
+    /* min-height: 600px; */
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+}
+
+#topleft {
+    width: 100ch;
+    min-height: 32em;
+    box-sizing: border-box;
+    padding: 16px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+}
+
+#main-content {
+    display: flex;
+    gap: 24px;
+    margin-top: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#cinema-area {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#cinema1, #cinema2 {
+    width: 95%;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 16px;
+}
+
+#topright {
+    flex: 0 0 50%;
+    box-sizing: border-box;
+    padding: 16px;
+    border: 1px solid var(--border);
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: var(--shadow)
+}
+
+.description {
+    min-width: 50ch;
+    display: inline-flex;
 }

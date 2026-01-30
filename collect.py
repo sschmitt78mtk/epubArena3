@@ -6,22 +6,18 @@ from ebooklib import epub
 from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 #import store
-from store import chunk #, translation, mainstore
+from store import Chunk
 from ErrorLog import log
 import config
 
 debugmode = True
-# class chapterhtmlpkg(chunk):
-#     def __init__(self, source_chaptername: str, html_str: str):
-#         self.chapterhtml_str = html_str
-#         super().__init__() 
 
-class extractor: # pylint: disable=unused-variable
+class Extractor: # pylint: disable=unused-variable
     def __init__(self, source_epubFilename: str):
         self.source_epubFilename = source_epubFilename
         self.epubchapters = []
         self.epubimages = []
-        self.chapterhtmlpkg :list[chunk] = []
+        self.chapterhtmlpkg :list[Chunk] = []
         self.finished = False
         self.author = ''
         self.title = ''
@@ -29,7 +25,7 @@ class extractor: # pylint: disable=unused-variable
     
     def extract_chapters(self)  -> None:
         try:
-            book = epub.read_epub(config.pathinp + self.source_epubFilename)
+            book = epub.read_epub(config.PATH_INP + self.source_epubFilename)
             self.epubimages = list(book.get_items_of_type(ebooklib.ITEM_IMAGE)) + list(book.get_items_of_type(ebooklib.ITEM_COVER))
             self.epubchapters = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
             self.title = book.get_metadata('DC', 'title')[0][0] if book.get_metadata('DC', 'title') else 'Unbekannter Titel'
@@ -39,14 +35,14 @@ class extractor: # pylint: disable=unused-variable
         except Exception as e:
             log.error(f'{self.source_epubFilename} konnte nicht gelesen werden. {str(e)}')
             return
-        bookChapterID = 0
+        bookchapter_id = 0
         for echapter in self.epubchapters:
-            bookChapterID += 1 
+            bookchapter_id += 1 
             source_chaptername = echapter.get_name()
             chapterhtml = self._chapter2html(echapter)
             chaptertitle = self._chapter2title(echapter)
-            self.chapterhtmlpkg.append(chunk(source_chaptername, 0, 'raw', chapterhtml))
-            self.chapterhtmlpkg[-1].chapterID = bookChapterID
+            self.chapterhtmlpkg.append(Chunk(source_chaptername, 0, 'raw', chapterhtml))
+            self.chapterhtmlpkg[-1].chapter_id = bookchapter_id
             self.chapterhtmlpkg[-1].metadata.append({'chaptertitle': chaptertitle})
             if debugmode: log.printlog(source_chaptername)
         self.finished = True
@@ -63,38 +59,37 @@ class extractor: # pylint: disable=unused-variable
         log.printlog(f'<h1>: {headings_str}')
         return str(headings_str)
 
-class cleaner: # pylint: disable=unused-variable
+class Cleaner: # pylint: disable=unused-variable
     def __init__(self, removeEmptyLine = False, replaceNewlineChar = False,  ):
-        #self.removeElements = removeElements
         self.removeEmptyLine = removeEmptyLine
         self.replaceNewlineChar = replaceNewlineChar
     def clean(self,html_in: str) -> str:
         html_out = html_in
-        if config.cfg.useMarkdown:
+        if config.cfg.use_markdown:
             html_out = md(html_out)
         if self.removeEmptyLine:
             html_out = html_out.replace('\n\n','\n')
         return html_out
-    def cleanchunks(self, chunks_in: list[chunk]) -> list[chunk]:
+    def cleanchunks(self, chunks_in: list[Chunk]) -> list[Chunk]:
         return chunks_in
     
-class chunker: # pylint: disable=unused-variable
+class Chunker: # pylint: disable=unused-variable
     def __init__(self, maxps: int, maxwords: int, minwords = 50):
         self.maxps = maxps
         self.maxwords = maxwords
         self.minwords = minwords # maxps werden ignoriert, wenn minwords nicht erreicht wurde.
         self.currentChunkID = 0
 
-    def chunkit(self, inputchunks: list[chunk]) -> list[chunk]:
-        outputchunks : list[chunk] = []
+    def chunkit(self, inputchunks: list[Chunk]) -> list[Chunk]:
+        outputchunks : list[Chunk] = []
         if len(inputchunks) > 0:
             #if debugmode: log.printlog(str(inputchunks))
             paracount = 0
             chunktext = ''
             heading_pattern = re.compile(r"^h[1-6]$")
             last_source_chaptername = inputchunks[0].source_chaptername
-            last_chapterID = inputchunks[0].chapterID
-            chunkitem: chunk # typehint     
+            last_chapter_id = inputchunks[0].chapter_id
+            chunkitem: Chunk # typehint     
             for chunkitem in inputchunks:
                 if chunkitem.content != '':              
                     soup = BeautifulSoup(chunkitem.content, 'html.parser')
@@ -104,31 +99,31 @@ class chunker: # pylint: disable=unused-variable
                         if elementtext != '' or 'img' in element.name: # Leerzeilen überspringen
                             if 'img' in element.name:
                                 if chunktext != '': # chunkitem beenden, bisher gesammelten Text packen
-                                    outputchunks.append(chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapterID))
+                                    outputchunks.append(Chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapter_id))
                                     self.currentChunkID +=1
                                     chunktext = ''
                                     paracount = 0
                                 imagefilename = 'images/' + os.path.basename(str(element.get('src'))) # Pfadnamen standardisieren
-                                outputchunks.append(chunk(chunkitem.source_chaptername, self.currentChunkID, "image", imagefilename,chunkitem.chapterID))
+                                outputchunks.append(Chunk(chunkitem.source_chaptername, self.currentChunkID, "image", imagefilename,chunkitem.chapter_id))
                                 self.currentChunkID +=1
                             elif element.name.startswith('h'): # blochunkitemck beenden, bisher gesammelten Text packen
                                 #print('"' + element.name+'"' )
                                 if chunktext != '':
-                                    outputchunks.append(chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapterID))
+                                    outputchunks.append(Chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapter_id))
                                     self.currentChunkID +=1
                                     chunktext = ''
                                     paracount = 0
-                                outputchunks.append(chunk(chunkitem.source_chaptername,self.currentChunkID,'heading',elementtext,chunkitem.chapterID))
+                                outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'heading',elementtext,chunkitem.chapter_id))
                                 outputchunks[-1].headinglevel = element.name
                                 self.currentChunkID +=1
                             elif element.name == 'table' or element.name == 'pre':
                                 if chunktext != '':
-                                    outputchunks.append(chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapterID))
+                                    outputchunks.append(Chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapter_id))
                                     self.currentChunkID +=1
                                     chunktext = ''
                                     paracount = 0
                                 # bei table den ursprünglichen Text verwenden, nicht den bereinigten.
-                                outputchunks.append(chunk(chunkitem.source_chaptername,self.currentChunkID,'table',element.prettify(),chunkitem.chapterID))
+                                outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'table',element.prettify(),chunkitem.chapter_id))
                                 outputchunks[-1].headinglevel = element.name
                                 self.currentChunkID +=1
                             else: # alles standardmäßig als 'p' behandeln
@@ -149,28 +144,28 @@ class chunker: # pylint: disable=unused-variable
                                             # wenn wordcount viel zu groß, letzten <p> zerlegen.
                                             chunks = splitpara(chunktext, self.maxwords)
                                             for chunk_text in chunks:
-                                                outputchunks.append(chunk(chunkitem.source_chaptername, self.currentChunkID, 'text', chunk_text, chunkitem.chapterID))
-                                                if debugmode: log.printlog(f'id: {chunkitem.chapterID}, {chunkitem.source_chaptername}, {self.currentChunkID}, text, (wordcount: {chunk_text.count(" ")})')
+                                                outputchunks.append(Chunk(chunkitem.source_chaptername, self.currentChunkID, 'text', chunk_text, chunkitem.chapter_id))
+                                                if debugmode: log.printlog(f'id: {chunkitem.chapter_id}, {chunkitem.source_chaptername}, {self.currentChunkID}, text, (wordcount: {chunk_text.count(" ")})')
                                                 self.currentChunkID += 1
                                         else: # trotzdem speichern, wenn nur geringfügig mehr Wörter
-                                            outputchunks.append(chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapterID))
+                                            outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapter_id))
                                             self.currentChunkID +=1
                                             
                                     if paracount >= self.maxps : 
                                         log.printlog('break maxps: ' + str(paracount))
-                                        outputchunks.append(chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapterID))
+                                        outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapter_id))
                                         self.currentChunkID +=1
                                     chunktext = ''
                                     paracount = 0 
                 else:
                     if debugmode: log.printlog('empty chunkitem')
                 last_source_chaptername = chunkitem.source_chaptername
-                last_chapterID = chunkitem.chapterID
+                last_chapter_id = chunkitem.chapter_id
         if chunktext != '': # letztes <p> im Kapitel aufnehmen
-            outputchunks.append(chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapterID)) 
+            outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapter_id)) 
             self.currentChunkID +=1       
         for chunkitem in outputchunks:
-            log.printlog(f'id: {chunkitem.chapterID}, {chunkitem.source_chaptername}, {chunkitem.chunkID}, {chunkitem.chunktype}, (wordcount: {chunkitem.content.count(" ")})')
+            log.printlog(f'id: {chunkitem.chapter_id}, {chunkitem.source_chaptername}, {chunkitem.chunk_id}, {chunkitem.chunktype}, (wordcount: {chunkitem.content.count(" ")})')
         return outputchunks
         
 

@@ -1,295 +1,212 @@
-# EPUB Processing and LLM Translation Tool - Documentation
+# epubArena3 - EPUB Processing and Translation Pipeline
 
-## Project Overview
+epubArena3 is a sophisticated EPUB processing and translation pipeline that uses Large Language Models (LLMs) to transform EPUB files through customizable workflows including summarization, translation, and content analysis. The system provides both command-line and web-based GUI interfaces for managing EPUB processing tasks.
 
-This is a tool for processing EPUB files, extracting content, and using Large Language Models (LLMs) for summarization/translation. It includes a Flask web interface for managing the process.
+## Overview
 
-## Architecture and Dependencies
+This project enables automated processing of EPUB files through a multi-step pipeline:
+1. **EPUB Extraction** - Parse EPUB files to extract chapters, metadata, and images
+2. **Content Chunking** - Split content into manageable chunks (configurable by paragraphs and word count)
+3. **LLM Processing** - Apply customizable LLM transformations using configurable prompts
+4. **Publication** - Generate side-by-side HTML comparisons and regenerate EPUB files
 
-```mermaid
-graph TB
-    subgraph "Main Entry Points"
-        EPUB[epubArena3.py]
-        GUI[gui3.py]
-    end
-    
-    subgraph "Core Processing Modules"
-        CALL[call.py - LLM Interface]
-        COLLECT[collect.py - EPUB Extraction]
-        PROCESS[process.py - Chunk Processing]
-        STORE[store.py - Data Management]
-    end
-    
-    subgraph "Support Modules"
-        CONFIG[config.py - Configuration]
-        PROMPTS[prompts.py - Prompt Management]
-        ERROR[ErrorLog.py - Logging]
-        JACCARD[jaccard.py - Text Deduplication]
-    end
-    
-    %% Dependencies
-    EPUB --> COLLECT
-    EPUB --> STORE
-    EPUB --> PROCESS
-    EPUB --> ERROR
-    EPUB --> CONFIG
-    
-    GUI --> EPUB
-    GUI --> PROCESS
-    GUI --> STORE
-    GUI --> PROMPTS
-    GUI --> ERROR
-    GUI --> CONFIG
-    
-    PROCESS --> CALL
-    PROCESS --> STORE
-    PROCESS --> PROMPTS
-    PROCESS --> CONFIG
-    
-    CALL --> ERROR
-    CALL --> STORE
-    CALL --> CONFIG
-    
-    COLLECT --> STORE
-    COLLECT --> ERROR
-    COLLECT --> CONFIG
-    
-    STORE --> ERROR
-    STORE --> JACCARD
-    STORE --> PROMPTS
-    STORE --> CONFIG
-    
-    CONFIG --> PROMPTS
-    
-    %% External Dependencies
-    CALL -.-> LLM_API[OpenAI API]
-    CALL -.-> LOCAL_LLM[Local LLM]
-    COLLECT -.-> EPUBLIB[eBookLib/BeautifulSoup]
-    GUI -.-> FLASK[Flask]
+## Key Features
+
+### Multi-Step Processing Pipeline
+- **Step 1 (Prompt1)**: Typically used for summarization or initial processing
+- **Step 2 (Prompt2)**: Typically used for translation or further refinement
+- **Flexible Source Selection**: Can process from original source or from Step 1 output
+- **Multi-Source Processing**: Compare and combine multiple translations
+
+### LLM Integration
+- **OpenAI-Compatible APIs**: Support for local LLM servers (LM Studio, llama.cpp)
+- **Local Model Support**: Load models via `llama-cpp-python`
+- **Configurable Parameters**: Temperature, top_p, max tokens, system prompts
+- **Customizable Prompts**: JSON-based prompt management system
+
+### Publication & Output
+- **Side-by-Side HTML Comparison**: Original vs. processed text with toggleable columns
+- **EPUB Regeneration**: Create new EPUB files from processed content
+- **Batch Processing**: Process multiple EPUB files sequentially
+- **Resume Capability**: Save progress as pickle files for continuation
+
+### User Interfaces
+- **Web GUI**: Flask-based interface for configuration and monitoring
+- **Command-Line Interface**: Script-based processing for automation
+- **Real-time Monitoring**: Live log viewing and progress tracking
+
+## Architecture
+
+### Core Modules
+
+| Module | Purpose |
+|--------|---------|
+| `epubArena3.py` | Main orchestration script |
+| `collect.py` | EPUB extraction, cleaning, and chunking |
+| `process.py` | LLM processing with configurable prompts |
+| `store.py` | Data persistence and Publication (HTML/EPUB generation) |
+| `call.py` | LLM API communication layer |
+| `config.py` | Configuration management |
+| `gui3.py` | Web interface (Flask) |
+| `prompts.py` | Prompt management system |
+| `jaccard.py` | Text similarity/comparison (quality checking) |
+| `ErrorLog.py` | Comprehensive logging system |
+
+### Data Flow
+```
+EPUB File → extractor → cleaner → chunker → processor → store → Publication
+                                   ↓
+                               LLM API/Local LLM
 ```
 
-## Module Descriptions
-
-### **Main Entry Points**
-
-#### `epubArena3.py` 📖
-**Purpose**: Main processing pipeline for EPUB files
-**Key Functions**:
-- Orchestrates the entire EPUB processing workflow
-- Handles batch processing of multiple EPUB files
-- Manages chunk processing with configurable start/stop points
-- Generates output files (HTML side-by-side view, EPUB)
-
-**Dependencies**: `collect`, `store`, `process`, `ErrorLog`, `config`
-
-#### `gui3.py` 🖥️
-**Purpose**: Web-based user interface
-**Key Features**:
-- Flask-based web interface for managing EPUB processing
-- Real-time progress monitoring
-- Configuration management
-- File upload functionality
-- Prompt selection interface
-
-**Dependencies**: `epubArena3`, `process`, `store`, `prompts`, `ErrorLog`, `config`
-
-### **Core Processing Modules**
-
-#### `call.py` 🤖
-**Purpose**: Interface with LLM APIs
-**Features**:
-- Supports OpenAI API and local LLMs (via llama.cpp)
-- Configurable model parameters (temperature, top_p, max_tokens)
-- Fallback mechanisms for API failures
-- Simulated mode for testing
-
-**Dependencies**: `ErrorLog`, `store`, `config`
-
-#### `collect.py` 📚
-**Purpose**: EPUB file extraction and chunking
-**Features**:
-- Extracts chapters, images, and metadata from EPUB files
-- Intelligent chunking based on paragraph/word limits
-- Handles various HTML elements (headings, tables, images, lists)
-- Configurable chunk sizes
-
-**Dependencies**: `store`, `ErrorLog`, `config`
-
-#### `process.py` ⚙️
-**Purpose**: Processes chunks through LLM pipeline
-**Features**:
-- Iterates through chunks and sends them to LLM
-- Maintains processing state
-- Handles interruptions and resumes
-- Automatic saving of progress
-
-**Dependencies**: `store`, `ErrorLog`, `call`, `config`, `prompts`
-
-#### `store.py` 💾
-**Purpose**: Data structures and persistence
-**Key Classes**:
-- `chunk`: Represents a unit of text/content
-- `translation`: Contains processed chunks with metadata
-- `mainstore`: Main data container with source and translations
-- `publication`: Handles output generation (HTML, EPUB)
-
-**Dependencies**: `ErrorLog`, `jaccard`, `config`, `prompts`
-
-### **Support Modules**
-
-#### `config.py` ⚙️
-**Purpose**: Configuration management
-**Features**:
-- Centralized configuration settings
-- Path management (input, output, logs)
-- Prompt loading/saving from JSON
-- Runtime configuration updates
-
-**Dependencies**: `prompts`
-
-#### `prompts.py` 💬
-**Purpose**: Prompt management system
-**Features**:
-- `promptset` class with configurable parameters
-- JSON serialization/deserialization
-- Prompt selection by ID
-- Support for different target languages
-
-#### `ErrorLog.py` 📋
-**Purpose**: Logging system
-**Features**:
-- Multi-level logging (info, warning, error)
-- Separate error and general logs
-- File-based logging with rotation
-- Console output with timestamps
-
-#### `jaccard.py` 🧹
-**Purpose**: Text deduplication
-**Features**:
-- Jaccard similarity-based sentence deduplication
-- Language-specific processing (German/English)
-- Configurable similarity thresholds
-- Performance optimized
-
-## Data Flow
-
-1. **Input**: EPUB file uploaded via GUI or placed in `input/` directory
-2. **Extraction**: `collect.py` extracts chapters and creates chunks
-3. **Processing**: `process.py` sends chunks to LLM via `call.py`
-4. **Storage**: Results stored in `mainstore` object via `store.py`
-5. **Output**: `publication` class generates HTML/EPUB outputs
-6. **Monitoring**: Real-time updates through Flask interface
-
-## File Structure
+## Project Structure
 
 ```
-project/
-├── call.py          # LLM interface
-├── collect.py       # EPUB extraction
-├── config.py        # Configuration
-├── epubArena3.py    # Main processing script
-├── ErrorLog.py      # Logging
-├── gui3.py          # Web interface
-├── jaccard.py       # Text deduplication
-├── process.py       # Chunk processing
-├── prompts.py       # Prompt management
-├── prompts.json     # Prompt configurations
-└── store.py         # Data storage
-
-directories/
-├── input/           # EPUB input files
-├── output/          # Generated HTML/EPUB files
-├── pkl/             # Pickle files (processed state)
-└── logs/            # Log files
+├── input/          # EPUB files to process
+├── output/         # Generated HTML and EPUB files
+├── pkl/           # Progress persistence (pickle files)
+├── logs/          # Processing logs
+├── static/        # Web GUI assets (CSS, JavaScript)
+├── templates/     # HTML templates for web interface
+├── api_configs_sample.json  # API endpoint configurations
+├── prompts_sample.json      # Default prompt configurations
+├── requirements.txt         # Python dependencies
+├── config.py               # Application configuration
+└── *.py                    # Core Python modules
 ```
 
-## Configuration
+## Configuration System
 
-### Key Configuration Settings (`config.py`):
+### Prompt Management
+Prompts are stored in JSON format (`prompts_sample.json`, `prompts.json`) with each prompt containing:
+- System message
+- Pre/Post prompts
+- Temperature, top_p, max token limits
+- Target language and processing flags
 
-```python
-# Paths
-pathinp = 'input/'     # Input EPUB files
-pathout = 'output/'    # Output HTML/EPUB files
-pathpkl = 'pkl/'       # State files
-pathlog = 'logs/'      # Log files
+### API Configuration
+Multiple API endpoint configurations in `api_configs_sample.json` supporting:
+- Local LLM servers (LM Studio)
+- Remote OpenAI-compatible APIs
+- Custom model configurations
 
-# LLM Settings
-default_OPENAI_API_BASE = "http://127.0.0.1:5000/v1"
-default_OPENAI_API_KEY = "sk-..."
-default_OPEN_API_MODELNAME = "deepseek-chat"
+## Installation & Setup
 
-# Processing
-chunker_maxp = 20      # Max paragraphs per chunk
-chunker_maxwords = 350 # Max words per chunk
-forceRedo = False      # Reprocess existing chunks
-```
+### Prerequisites
+- Python 3.12+
+- Virtual environment recommended
 
-### Prompt Configuration (`prompts.json`):
-Each prompt includes:
-- `system_message`: LLM system prompt
-- `prePrompt`/`postPrompt`: Text wrappers
-- `allowLongAnswer`: Allow longer responses
-- `temperature`/`top_p`: LLM parameters
-- `targetlanguage`: Target language code
-
-## Usage Examples
-
-### Command Line:
+### Installation
 ```bash
-python epubArena3.py
+# Clone the repository
+git clone https://github.com/sschmitt78mtk/epubArena3.git
+cd epubArena3
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### Web Interface:
+### Running the Application
+
+**Web GUI:**
 ```bash
 python gui3.py
 # Access at http://127.0.0.1:8080
 ```
 
-### Batch Processing:
-Set `batchJobs = True` in config to process all EPUBs in `input/` directory
-
-## External Dependencies
-
-### Required:
-```
-ebooklib
-beautifulsoup4
-requests
-flask
-openai
-markdown
+**Command Line:**
+```bash
+python epubArena3.py
 ```
 
-### Optional:
-```
-llama-cpp-python  # For local LLM support
-spacy             # For advanced text deduplication
-keyboard          # For keyboard interrupt support
-```
+**Batch Processing:**
+- Configure `config.py` or use web interface
+- Place EPUB files in `input/` directory
+- Enable batch processing mode
 
-## Troubleshooting
+## Usage Examples
 
-### Common Issues:
-1. **LLM Connection Failed**: Check API base URL and key in config
-2. **EPUB Extraction Issues**: Verify EPUB file format and structure
-3. **Memory Issues**: Reduce `chunker_maxwords` or use smaller chunks
-4. **Processing Stops**: Check logs for LLM timeout or API errors
+### 1. EPUB Translation
+1. Upload EPUB file via web interface
+2. Configure translation prompts
+3. Process through summarization → translation pipeline
+4. Download side-by-side comparison or translated EPUB
 
-### Log Files:
-- General logs: `logs/[epub_filename].log`
-- Error logs: `logs/errors.log`
+### 2. Content Summarization
+1. Configure summarization prompt (Prompt1)
+2. Process EPUB to create condensed version
+3. Generate HTML comparison with original
 
-## Performance Considerations
+### 3. Comparative Analysis
+1. Process same EPUB with multiple prompts/models
+2. Compare outputs side-by-side
+3. Analyze differences in translation quality
 
-1. **Chunk Size**: Adjust `chunker_maxwords` based on LLM context window
-2. **Batch Processing**: Enable for multiple files, monitor memory usage
-3. **Cache**: Processed chunks are saved in PKL files for resumption
-4. **Parallel Processing**: Currently single-threaded for reliability
+## Configuration Options
 
-## Extension Points
+### Processing Settings
+- **Chunk Size**: Control paragraph and word limits per chunk
+- **LLM Parameters**: Temperature, top_p, max tokens
+- **Model Selection**: Different models for each processing step
+- **Batch Processing**: Process multiple files sequentially
 
-1. **New LLM Providers**: Add to `call.py` `llmcaller` class
-2. **Additional Output Formats**: Extend `publication` class in `store.py`
-3. **Custom Processing**: Modify `processor` class in `process.py`
-4. **New Prompt Types**: Add to `prompts.json` and select via GUI
+### Publication Settings
+- **HTML Output**: Side-by-side or single-column views
+- **EPUB Generation**: Include images, preserve formatting
+- **Jaccard Clean**: Text similarity filtering
+
+## Technology Stack
+
+- **Python 3.12+** with extensive typing annotations
+- **Flask** for web interface
+- **OpenAI SDK** for LLM communication
+- **EbookLib** for EPUB manipulation
+- **BeautifulSoup4** for HTML processing
+- **Spacy** (optional) for text analysis via Jaccard similarity
+- **Markdown** support for content conversion
+
+## Development Status
+
+The project is actively maintained with:
+- Comprehensive error handling and logging
+- Configuration persistence
+- Support for both CLI and GUI operation
+- Batch processing capabilities
+- Regular updates and improvements
+
+## Code Quality
+- Type hints throughout the codebase
+- Pylint configuration for style checking
+- Clear module separation and responsibilities
+- Comprehensive logging for debugging
+
+## Use Cases
+
+1. **EPUB Translation**: Translating books between languages using LLMs
+2. **Content Summarization**: Creating condensed versions of books/articles
+3. **Educational Tools**: Side-by-side comparison for language learning
+4. **Content Analysis**: Comparing multiple translations/summaries
+5. **Content Transformation**: Applying various text transformations via LLM prompts
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make changes with appropriate tests
+4. Submit a pull request
+
+## License
+
+See `LICENSE` file for details.
+
+## Support
+
+For issues and feature requests, please use the GitHub issue tracker.
+
+---
+
+*Note: This project is designed for processing EPUB files for educational and research purposes. Always ensure you have the appropriate rights to process and modify any EPUB files.*
