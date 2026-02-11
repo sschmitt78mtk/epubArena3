@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify as md
 #import store
 from store import Chunk
-from ErrorLog import log
+from errorLog import log
 import config
 
 debugmode = True

@@ -1,6 +1,7 @@
 from __future__ import annotations # pylint: disable=unused-variable
 from typing import Any
 import json
+import config
 
 class Promptset:
     def __init__(self, PromptID: int, system_message: str, prePrompt: str, postPrompt: str, infostr: str, 
@@ -72,7 +73,7 @@ class Promptset:
 def save_promptsets(promptsets: list[Promptset], filename: str) -> None: # pylint: disable=unused-variable
     """Speichert PromptSets als JSON"""
     data = [ps.to_dict() for ps in promptsets]
-    with open(filename, 'w', encoding='utf-8') as f:
+    with open(config.PATH_CFG + filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 def load_promptsets(filename: str) -> list[Promptset]: # pylint: disable=unused-variable
