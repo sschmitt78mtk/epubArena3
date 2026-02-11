@@ -1,4 +1,6 @@
 import os
+import shutil
+
 from prompts import Promptset, get_promptsetByID, load_promptsets, save_promptsets
 
 # pylint: disable=unused-variable
@@ -12,22 +14,29 @@ app_running = False
 continue_process = True
 
 SUPPORT_KEYBOARD_BREAK = False
-#PROMPTS_JSON_FILE = "prompts_sample.json"
-#API_CONFIG_FILE = "api_configs_sample.json"
+PROMPTS_JSON_FILE_NEW = "prompts_sample.json"
+API_CONFIG_FILE_NEW = "api_configs_sample.json"
 PROMPTS_JSON_FILE = "prompts.json"
 API_CONFIG_FILE = "api_configs.json"
-# For backward compatibility with existing code
-promtsjsonfile = PROMPTS_JSON_FILE
-apiconfigfile = API_CONFIG_FILE
 
-PATH_PKL = "pkl/"
-PATH_OUT = "output/"
-PATH_INP = "input/"
-PATH_LOG = "logs/"
+
+PATH_BASE = "data/"
+PATH_PKL = "data/pkl/"
+PATH_LOG = "data/pkl/"
+PATH_OUT = "data/output/"
+PATH_INP = "data/input/"
+
+PATH_CFG = "data/cfg/"
+
+# PATH_PKL = "/app/data/pkl/"
+# PATH_LOG = "/app/data/pkl/"
+# PATH_OUT = "/app/data/output/"
+# PATH_INP = "/app/data/input/"
+# PATH_CFG = "/app/data/cfg/"
 
 # pylint: enable=unused-variable
 
-paths = [PATH_PKL, PATH_OUT, PATH_INP, PATH_LOG]
+paths = [PATH_BASE, PATH_PKL, PATH_OUT, PATH_INP, PATH_LOG, PATH_CFG]
 def check_paths() -> None: 
     for directory in paths:
         if not os.path.exists(directory):
@@ -36,19 +45,29 @@ check_paths()
 
 all_promptset = []
 
-if os.path.exists(PROMPTS_JSON_FILE):
-    print("promtsjsonfile exists.")
-    all_promptset = load_promptsets(PROMPTS_JSON_FILE)
-else:
-    print("promtsjsonfile does not exist.")
-    all_promptset = [
-        Promptset(0,'1:1 (Original)', '','','keine Verarbeitung',True),
-        Promptset(1,'Reduziere den Text auf die zentralen Fakten und Zahlen. Keine Ausschmückungen.','','','TBD',False)
-    ]
-    save_promptsets(all_promptset, PROMPTS_JSON_FILE)
+# check api-config-files exists
+if not os.path.exists(PATH_CFG + API_CONFIG_FILE):
+    print("API_CONFIG_FILE does not exist, using sample.")
+    if os.path.exists(API_CONFIG_FILE_NEW):
+        shutil.move(API_CONFIG_FILE_NEW, PATH_CFG + API_CONFIG_FILE)
+    else:
+        print("API_CONFIG_FILE sample NOT FOUND either.")
 
-# For backward compatibility with existing code
-AllPromptset = all_promptset
+# check prmpt-config-files exists
+if os.path.exists(PATH_CFG + PROMPTS_JSON_FILE):
+    print("PROMPTS_JSON_FILE exists.")
+    all_promptset = load_promptsets(PATH_CFG + PROMPTS_JSON_FILE)
+else:
+    print("PROMPTS_JSON_FILE does not exist, create new one.")
+    if os.path.exists(PROMPTS_JSON_FILE_NEW):
+        shutil.move(PROMPTS_JSON_FILE_NEW, PATH_CFG + PROMPTS_JSON_FILE)
+        all_promptset = load_promptsets(PROMPTS_JSON_FILE_NEW)
+    else:
+        all_promptset = [
+            Promptset(0,'1:1 (Original)', '','','keine Verarbeitung',True),
+            Promptset(1,'Reduziere den Text auf die zentralen Fakten und Zahlen. Keine Ausschmückungen.','','','TBD',False)
+        ]
+    save_promptsets(all_promptset, PATH_CFG + PROMPTS_JSON_FILE)
     
 class Configuration:
     def __init__(self):
