@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
 
 import config
-import ErrorLog
+import errorLog
 import epubArena3
 import store
 from prompts import Promptset, load_promptsets, save_promptsets
@@ -38,7 +38,7 @@ def upload_file(): # pylint: disable=unused-variable
          
         config.cfg.gePubFilename = str(file.filename)
         estoreinfo = store.loadstore(str(file.filename))
-        ErrorLog.log.printlog(f'Info: {estoreinfo.info()}')
+        errorLog.log.printlog(f'Info: {estoreinfo.info()}')
     else: 
         statustext = "nicht gespeichert, nur .epub-Dateien können verarbeitet werden."
     return redirect(url_for('index'))
@@ -54,7 +54,7 @@ def index(): # pylint: disable=unused-variable
     if request.method == "POST":
         if "start" in request.form:  # Falls der "START"-Button gedrückt wurde
             if config.app_running:
-                ErrorLog.log.printlog('Web: Start noch nicht möglich (laufender Prozess wird beendet)')
+                errorLog.log.printlog('Web: Start noch nicht möglich (laufender Prozess wird beendet)')
                 config.continue_process = False
             else:
                 Errors = '' # Prüfen, ob Werte sinnvoll
@@ -92,38 +92,38 @@ def index(): # pylint: disable=unused-variable
                     Errors = '\nkein ePub ausgewählt (nur .epub  können verarbeitet werden)\n'
             if Errors == '':
                 config.cfg.update_main()    
-                ErrorLog.log.printlog('Web: Start')
+                errorLog.log.printlog('Web: Start')
                 config.continue_process = True 
                 print(config.cfg.__dict__)
                 save_lastConfig()
                 epubArena3.run()
             else:
-                ErrorLog.log.printlog(f'KEIN Start weil: {Errors} ')
+                errorLog.log.printlog(f'KEIN Start weil: {Errors} ')
             
         elif "stop" in request.form:  # Falls der "STOP"-Button gedrückt wurde
             config.continue_process = False
-            ErrorLog.log.printlog('Web: Stop (aktueller chunk wird noch beendet)')
+            errorLog.log.printlog('Web: Stop (aktueller chunk wird noch beendet)')
         elif "delete" in request.form:
             modelname2delete = request.form.get("modeltodelete")
             if modelname2delete is None:
                 modelname2delete = ""
-            ErrorLog.log.printlog(f'Web: Versuche Löschen der Translation mit Name "{modelname2delete}"')
+            errorLog.log.printlog(f'Web: Versuche Löschen der Translation mit Name "{modelname2delete}"')
             try:
                 estoreinfo = store.loadstore(config.cfg.gePubFilename)
                 estoreinfo.removeTranslationsByName(modelname2delete)
-                ErrorLog.log.printlog(f'Info: {estoreinfo.info()}')
+                errorLog.log.printlog(f'Info: {estoreinfo.info()}')
                 estoreinfo.save()
             except Exception as e:
-                ErrorLog.log.printlog(f'Web: Translation mit Name "{modelname2delete}" konnte nicht gelöscht werden. {str(e)}')
+                errorLog.log.printlog(f'Web: Translation mit Name "{modelname2delete}" konnte nicht gelöscht werden. {str(e)}')
             
     return render_template("gui3.html", **config.cfg.__dict__)
 
 @app.route("/get_messages", methods=["GET"])
 def get_messages(): # pylint: disable=unused-variable
-    if not ErrorLog.log.Logfiletext: # None abfangen
+    if not errorLog.log.Logfiletext: # None abfangen
         log_last_10_lines = '...'
     else:
-        infoFromLogfile = html.escape(ErrorLog.log.Sessiontext) # verhindert, daß HTML-Code in info-DIV aktiv werden kann
+        infoFromLogfile = html.escape(errorLog.log.Sessiontext) # verhindert, daß HTML-Code in info-DIV aktiv werden kann
         lines = infoFromLogfile.splitlines()
         last_10_lines = lines[-300:]
         log_last_10_lines = "<br/>".join(last_10_lines)
@@ -132,7 +132,7 @@ def get_messages(): # pylint: disable=unused-variable
 
 @app.route("/get_prompts", methods=["GET"])
 def get_prompts():  # pylint: disable=unused-variable
-    prompt_objects = config.AllPromptset  # [epubArena3.prompt1, epubArena3.prompt2]
+    prompt_objects = config.all_promptset  # [epubArena3.prompt1, epubArena3.prompt2]
     all_prompts = [p.__dict__ for p in prompt_objects]
     return jsonify({
         'prompts': all_prompts,
@@ -143,8 +143,8 @@ def get_prompts():  # pylint: disable=unused-variable
 
 @app.route('/get_api_configs')
 def get_api_configs(): # pylint: disable=unused-variable
-    if os.path.exists(config.apiconfigfile):
-        with open(config.apiconfigfile, 'r', encoding="utf-8") as f:
+    if os.path.exists(config.PATH_CFG + config.API_CONFIG_FILE):
+        with open(config.PATH_CFG + config.API_CONFIG_FILE, 'r', encoding="utf-8") as f:
             configs = json.load(f)
     else:
         configs = []
@@ -155,7 +155,7 @@ def get_api_configs(): # pylint: disable=unused-variable
 
 @app.route("/get_prompts2", methods=["GET"])
 def get_prompts2(): # pylint: disable=unused-variable
-    prompt_objects = config.AllPromptset
+    prompt_objects = config.all_promptset
     return jsonify({
         "prompts": [p.__dict__ for p in prompt_objects]
     })
@@ -174,8 +174,8 @@ def save_prompts2(): # pylint: disable=unused-variable
             return jsonify(success=False, message=f"Prompt nicht vollständig: {str(exc)}"), 400
 
     try:
-        save_promptsets(prompts, config.PROMPTS_JSON_FILE)
-        config.AllPromptset = load_promptsets(config.PROMPTS_JSON_FILE) # Prompts nach dem bearbeiten neu laden
+        save_promptsets(prompts, config.PATH_CFG + config.reload_epub)
+        config.all_promptset = load_promptsets(config.PATH_CFG + config.reload_epub) # Prompts nach dem bearbeiten neu laden
     except Exception as exc:
         return jsonify(success=False, message=f"Speichern fehlgeschlagen: {str(exc)}"), 500
 
@@ -183,37 +183,41 @@ def save_prompts2(): # pylint: disable=unused-variable
 
 @app.route("/editprompts")
 def edit_prompts(): # pylint: disable=unused-variable
-    current_prompts = config.AllPromptset
+    current_prompts = config.all_promptset
     return render_template("editprompts.html", prompts=[p.__dict__ for p in current_prompts])
 
 @app.route("/list_epub_files", methods=["GET"])
 def list_epub_files(): # pylint: disable=unused-variable
     """Return a JSON list of all EPUB files in the output directory."""
-    epub_files = []
+    downloadable_files = []
     try:
-        # Find all .epub files in the output directory
-        pattern = os.path.join(config.PATH_OUT, "*.epub")
-        files = glob.glob(pattern)
-        
-        for file_path in sorted(files):  # Sort alphanumerically
+        patterns = [os.path.join(config.PATH_OUT, "*.epub"),
+                    os.path.join(config.PATH_OUT, "*.html")]
+
+        file_paths = []
+        for pat in patterns:
+            file_paths.extend(glob.glob(pat))
+
+        for file_path in sorted(file_paths):
             filename = os.path.basename(file_path)
-            file_stat = os.stat(file_path)
-            epub_files.append({
+            st = os.stat(file_path)
+            downloadable_files.append({
                 "name": filename,
-                "size": file_stat.st_size,
-                "modified": file_stat.st_mtime
+                "size": st.st_size,
+                "modified": st.st_mtime,
             })
     except Exception as e:
-        ErrorLog.log.printlog(f"Error listing EPUB files: {str(e)}")
+        errorLog.log.printlog(f"Error listing EPUB files: {str(e)}")
     
-    return jsonify({"files": epub_files})
+    return jsonify({"files": downloadable_files})
 
 @app.route("/download/<filename>")
 def download_file(filename): # pylint: disable=unused-variable
     """Serve EPUB files for download from the output directory."""
     # Security: only allow .epub files and prevent directory traversal
-    if not filename.endswith('.epub'):
-        return jsonify({"error": "Only EPUB files can be downloaded"}), 400
+    allowed_extensions = ('.epub', '.html')
+    if not filename.lower().endswith(allowed_extensions):
+        return jsonify({"error": "Only EPUB and HTML files can be downloaded"}), 400
     
     # Ensure the file exists in the output directory
     file_path = os.path.join(config.PATH_OUT, filename)
@@ -228,20 +232,20 @@ def load_lastConfig() -> None:
     try:
         with open(pklFilename, 'rb') as f:
             config.cfg = pickle.load(f)
-        ErrorLog.log.printlog(f'Daten aus PKL-Datei {pklFilename} geladen.')
+        errorLog.log.printlog(f'Daten aus PKL-Datei {pklFilename} geladen.')
         estoreinfo = store.loadstore(config.cfg.gePubFilename)
         estoreinfo.info()
     except Exception as exc:
-        ErrorLog.log.printlog(f'{pklFilename} konnte nicht geladen werden. {str(exc)}')
+        errorLog.log.printlog(f'{pklFilename} konnte nicht geladen werden. {str(exc)}')
 
 def save_lastConfig() -> None:
     pklFilename = config.PATH_PKL + 'laststate.pkl'
     try:
         with open(pklFilename, 'wb') as f:
             pickle.dump(config.cfg, f)
-        ErrorLog.log.printlog(f'Status in PKL-Datei {pklFilename} gespeichert.')
+        errorLog.log.printlog(f'Status in PKL-Datei {pklFilename} gespeichert.')
     except Exception as exc:
-        ErrorLog.log.printlog(f'{pklFilename} konnte nicht gespeichert werden. {str(exc)}')
+        errorLog.log.printlog(f'{pklFilename} konnte nicht gespeichert werden. {str(exc)}')
     
 def open_browser() -> None: # pylint: disable=unused-variable
     time.sleep(1) # Warte kurz, bis der Flask-Server gestartet ist
