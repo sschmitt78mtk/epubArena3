@@ -5,7 +5,7 @@ import copy
 from store import Chunk, Translation, Mainstore
 from prompts import Promptset
 
-from ErrorLog import log
+from errorLog import log
 from call import Llmcaller
 import config
 
@@ -62,7 +62,7 @@ class Processor:
                     headingwordcount = chunkitem.content.count(' ') + 1 # minimum 1 Word
                     maxtokenheading = headingwordcount * 4 # translation of heading is max. 3x wordcount
                     nextcontent = llm.request(self._inputtext_safe(chunkitem.content), self.prompt, maxtokenheading)
-                    #nextcontent = llm.request(self._inputtext_safe(chunkitem.content), config.get_promptsetByID(config.AllPromptset,12))
+                    #nextcontent = llm.request(self._inputtext_safe(chunkitem.content), config.get_promptsetByID(config.all_promptset,12))
                 elif chunkitem.chunktype == 'heading':
                     nextcontent = self._inputtext_safe(chunkitem.content)
                 else:

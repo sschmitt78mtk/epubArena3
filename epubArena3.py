@@ -41,7 +41,7 @@ if config.SUPPORT_KEYBOARD_BREAK: import keyboard
 from collect import Extractor, Cleaner, Chunker
 from store import loadstore, Publication #, get_promptsetByID, load_promptsets, save_promptsets
 from process import Processor, ProcessorMultiSource
-from ErrorLog import log
+from errorLog import log
 #from prompts import promptset, get_promptsetByID, load_promptsets, save_promptsets
 
 # pylint: enable=wrong-import-position

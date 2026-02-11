@@ -9,7 +9,7 @@ import base64 # Für Einbettung von Image
 #from bs4 import BeautifulSoup
 import ebooklib
 from ebooklib import epub
-from ErrorLog import log
+from errorLog import log
 from jaccard import jaccard_clean
 import config
 from prompts import Promptset

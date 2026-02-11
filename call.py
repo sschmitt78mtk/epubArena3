@@ -1,6 +1,6 @@
 from __future__ import annotations # pylint: disable=unused-variable
 from openai import OpenAI
-from ErrorLog import log
+from errorLog import log
 from prompts import Promptset
 import config
 
