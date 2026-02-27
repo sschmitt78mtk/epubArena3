@@ -7,12 +7,11 @@
 # pip install openai
 # pip install llama-cpp-python (optional für directLLM) -> akutell kein pythoch für 3.13 (3.12 verwenden?)
 # pip install flask
-# pip install spacy (optional? -> jaccard)
 
 # pip install types-keyboard
 # pip install types-beautifulsoup4
 
-# pip install ebooklib beautifulsoup4 requests keyboard markdown markdownify openai flask spacy
+# pip install ebooklib beautifulsoup4 requests keyboard markdown markdownify openai flask
 # optional für direct : pip install llama-cpp-python
 
 
