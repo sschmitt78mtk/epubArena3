@@ -81,8 +81,8 @@ def index(): # pylint: disable=unused-variable
                 cww = request.form.get("chunker_maxwords")
                 config.cfg.chunker_maxp = int(cp) if cp is not None and cp != "" else 0
                 config.cfg.chunker_maxwords = int(cww) if cww is not None and cww != "" else 0
-                p1 = request.form.get("prompt1_no")
-                p2 = request.form.get("prompt2_no")
+                p1 = request.form.get("promptno_1")
+                p2 = request.form.get("promptno_2")
                 config.cfg.prompt1_no = int(p1) if p1 is not None and p1 != "" else 0
                 config.cfg.prompt2_no = int(p2) if p2 is not None and p2 != "" else 0
                 
@@ -174,8 +174,8 @@ def save_prompts2(): # pylint: disable=unused-variable
             return jsonify(success=False, message=f"Prompt nicht vollständig: {str(exc)}"), 400
 
     try:
-        save_promptsets(prompts, config.PATH_CFG + config.reload_epub)
-        config.all_promptset = load_promptsets(config.PATH_CFG + config.reload_epub) # Prompts nach dem bearbeiten neu laden
+        save_promptsets(prompts, config.PATH_CFG + config.PROMPTS_JSON_FILE)
+        config.all_promptset = load_promptsets(config.PATH_CFG + config.PROMPTS_JSON_FILE) # Prompts nach dem bearbeiten neu laden
     except Exception as exc:
         return jsonify(success=False, message=f"Speichern fehlgeschlagen: {str(exc)}"), 500
 
