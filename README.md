@@ -50,7 +50,7 @@ This project enables automated processing of EPUB files through a multi-step pip
 | `gui3.py` | Web interface (Flask) |
 | `prompts.py` | Prompt management system |
 | `jaccard.py` | Text similarity/comparison (quality checking) |
-| `ErrorLog.py` | Comprehensive logging system |
+| `errorLog.py` | Comprehensive logging system |
 
 ### Data Flow
 ```
