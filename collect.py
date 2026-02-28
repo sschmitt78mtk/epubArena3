@@ -86,7 +86,6 @@ class Chunker: # pylint: disable=unused-variable
             #if debugmode: log.printlog(str(inputchunks))
             paracount = 0
             chunktext = ''
-            heading_pattern = re.compile(r"^h[1-6]$")
             last_source_chaptername = inputchunks[0].source_chaptername
             last_chapter_id = inputchunks[0].chapter_id
             chunkitem: Chunk # typehint     
