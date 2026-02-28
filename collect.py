@@ -3,7 +3,7 @@ import os
 #import html
 import ebooklib
 from ebooklib import epub
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from markdownify import markdownify as md
 #import store
 from store import Chunk
@@ -80,13 +80,75 @@ class Chunker: # pylint: disable=unused-variable
         self.minwords = minwords # maxps werden ignoriert, wenn minwords nicht erreicht wurde.
         self.currentChunkID = 0
 
+    def extract_chunks_from_html(self, html: str, source_chaptername: str, chapter_id: int) -> list[Chunk]:
+        """
+        Extracts tables, images, headings, paragraphs, and list items from HTML in linear order.
+        Tables are kept as HTML, images as src, others as text.
+        """
+        import re
+        outputchunks = []
+        tag_regex = re.compile(
+            r'(?P<table><table.*?>.*?</table>)|'
+            r'(?P<img><img\s+[^>]*src="([^"]+)"[^>]*>)|'
+            r'(?P<heading><h[1-6][^>]*>.*?</h[1-6]>)|'
+            r'(?P<para><p[^>]*>.*?</p>)|'
+            r'(?P<li><li[^>]*>.*?</li>)',
+            re.DOTALL | re.IGNORECASE
+        )
+        for match in tag_regex.finditer(html):
+            if match.group('table'):
+                outputchunks.append(Chunk(source_chaptername, self.currentChunkID, 'table', match.group('table'), chapter_id))
+                self.currentChunkID += 1
+            elif match.group('img'):
+                # Extract src attribute
+                src_match = re.search(r'src="([^"]+)"', match.group('img'))
+                if src_match:
+                    src = src_match.group(1)
+                    outputchunks.append(Chunk(source_chaptername, self.currentChunkID, 'image', src, chapter_id))
+                    self.currentChunkID += 1
+            elif match.group('heading'):
+                # Extract heading level (e.g., 'h2') from the tag
+                heading_html = match.group('heading')
+                heading_level_match = re.match(r'<(h[1-6])', heading_html, re.IGNORECASE)
+                heading_level = heading_level_match.group(1) if heading_level_match else None
+                text = re.sub(r'<.*?>', '', heading_html).strip()
+                outputchunks.append(Chunk(source_chaptername, self.currentChunkID, 'heading', text, chapter_id))
+                if heading_level:
+                    outputchunks[-1].headinglevel = heading_level
+                self.currentChunkID += 1
+            elif match.group('para'):
+                text = re.sub(r'<.*?>', '', match.group('para')).strip()
+                outputchunks.append(Chunk(source_chaptername, self.currentChunkID, 'text', text, chapter_id))
+                self.currentChunkID += 1
+            elif match.group('li'):
+                text = re.sub(r'<.*?>', '', match.group('li')).strip()
+                outputchunks.append(Chunk(source_chaptername, self.currentChunkID, 'text', text, chapter_id))
+                self.currentChunkID += 1
+        return outputchunks
+    
+    
     def chunkit(self, inputchunks: list[Chunk]) -> list[Chunk]:
         debugmode = True
         outputchunks : list[Chunk] = []
         if len(inputchunks) > 0:
             if debugmode: log.printlog(str(inputchunks))
-            chunktext = ''
+            for chunkitem in inputchunks:
+                if chunkitem.content != '':
+                    # Use regex-based extraction
+                    extracted = self.extract_chunks_from_html(chunkitem.content, chunkitem.source_chaptername, chunkitem.chapter_id)
+                    outputchunks.extend(extracted)
+                else:
+                    if debugmode: log.printlog('empty chunkitem')
+        for chunkitem in outputchunks:
+            log.printlog(f'id: {chunkitem.chapter_id}, {chunkitem.source_chaptername}, {chunkitem.chunk_id}, {chunkitem.chunktype}, (wordcount: {chunkitem.content.count(" ")})')
+        return outputchunks
+    
+    def chunkit_bu(self, inputchunks: list[Chunk]) -> list[Chunk]:
+        outputchunks : list[Chunk] = []
+        if len(inputchunks) > 0:
+            #if debugmode: log.printlog(str(inputchunks))
             paracount = 0
+            chunktext = ''
             heading_pattern = re.compile(r"^h[1-6]$")
             last_source_chaptername = inputchunks[0].source_chaptername
             last_chapter_id = inputchunks[0].chapter_id
@@ -135,13 +197,13 @@ class Chunker: # pylint: disable=unused-variable
                                     chunktext += '\n' + elementtext
                                 if 'p' in element.name: paracount +=1 # nur neue <p> zählen
                                 wordcount = chunktext.count(' ') # Wörter (=Leerzeichen) zählen
-                                if (paracount >= self.maxps and wordcount > self.minwords) or wordcount > self.maxwords:
+                                if paracount >= self.maxps and wordcount > self.minwords or wordcount > self.maxwords:
                                     if wordcount > self.maxwords: 
                                         log.printlog(f'break wordcount: {str(wordcount)} (chunkID {self.currentChunkID})')
                                         paracount = 0 # Da der Text komplett einzeln verarbeitet wird, die ps auf 0 zurücksetzen
                                         maxmaxwords = 1.5*self.maxwords
                                         if wordcount > maxmaxwords:
-                                            log.printlog(f'chunk {self.currentChunkID} weiter aufteilen.. (wordcount > 1.5*maxwords)')
+                                            if debugmode: log.printlog(f'chunk {self.currentChunkID} weiter aufteilen..')
                                             # wenn wordcount viel zu groß, letzten <p> zerlegen.
                                             chunks = splitpara(chunktext, self.maxwords)
                                             for chunk_text in chunks:
@@ -150,27 +212,24 @@ class Chunker: # pylint: disable=unused-variable
                                                 self.currentChunkID += 1
                                         else: # trotzdem speichern, wenn nur geringfügig mehr Wörter
                                             outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapter_id))
-                                            if debugmode: log.printlog(f'chunk {self.currentChunkID} trotzdem gespeichert da wordcount < 1.5* maxwords)')
-                                            self.currentChunkID +=1                                     
+                                            self.currentChunkID +=1
+                                            
                                     if paracount >= self.maxps : 
                                         log.printlog('break maxps: ' + str(paracount))
                                         outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapter_id))
                                         self.currentChunkID +=1
                                     chunktext = ''
-                                    paracount = 0
-                        else:
-                            if debugmode: log.printlog('empty elementtext in chunkitem')
+                                    paracount = 0 
                 else:
                     if debugmode: log.printlog('empty chunkitem')
                 last_source_chaptername = chunkitem.source_chaptername
                 last_chapter_id = chunkitem.chapter_id
-            if chunktext != '': # letztes <p> oder mehrere im Kapitel aufnehmen
-                outputchunks.append(Chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapter_id)) 
-                self.currentChunkID +=1       
+        if chunktext != '': # letztes <p> im Kapitel aufnehmen
+            outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapter_id)) 
+            self.currentChunkID +=1       
         for chunkitem in outputchunks:
             log.printlog(f'id: {chunkitem.chapter_id}, {chunkitem.source_chaptername}, {chunkitem.chunk_id}, {chunkitem.chunktype}, (wordcount: {chunkitem.content.count(" ")})')
         return outputchunks
-        
 
 def splitpara(fullchunktext: str, maxwords: int) -> list[str]:
     """
