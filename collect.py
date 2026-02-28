@@ -81,11 +81,12 @@ class Chunker: # pylint: disable=unused-variable
         self.currentChunkID = 0
 
     def chunkit(self, inputchunks: list[Chunk]) -> list[Chunk]:
+        debugmode = True
         outputchunks : list[Chunk] = []
         if len(inputchunks) > 0:
-            #if debugmode: log.printlog(str(inputchunks))
-            paracount = 0
+            if debugmode: log.printlog(str(inputchunks))
             chunktext = ''
+            paracount = 0
             heading_pattern = re.compile(r"^h[1-6]$")
             last_source_chaptername = inputchunks[0].source_chaptername
             last_chapter_id = inputchunks[0].chapter_id
@@ -134,13 +135,13 @@ class Chunker: # pylint: disable=unused-variable
                                     chunktext += '\n' + elementtext
                                 if 'p' in element.name: paracount +=1 # nur neue <p> zählen
                                 wordcount = chunktext.count(' ') # Wörter (=Leerzeichen) zählen
-                                if paracount >= self.maxps and wordcount > self.minwords or wordcount > self.maxwords:
+                                if (paracount >= self.maxps and wordcount > self.minwords) or wordcount > self.maxwords:
                                     if wordcount > self.maxwords: 
                                         log.printlog(f'break wordcount: {str(wordcount)} (chunkID {self.currentChunkID})')
                                         paracount = 0 # Da der Text komplett einzeln verarbeitet wird, die ps auf 0 zurücksetzen
                                         maxmaxwords = 1.5*self.maxwords
                                         if wordcount > maxmaxwords:
-                                            if debugmode: log.printlog(f'chunk {self.currentChunkID} weiter aufteilen..')
+                                            log.printlog(f'chunk {self.currentChunkID} weiter aufteilen.. (wordcount > 1.5*maxwords)')
                                             # wenn wordcount viel zu groß, letzten <p> zerlegen.
                                             chunks = splitpara(chunktext, self.maxwords)
                                             for chunk_text in chunks:
@@ -149,21 +150,23 @@ class Chunker: # pylint: disable=unused-variable
                                                 self.currentChunkID += 1
                                         else: # trotzdem speichern, wenn nur geringfügig mehr Wörter
                                             outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapter_id))
-                                            self.currentChunkID +=1
-                                            
+                                            if debugmode: log.printlog(f'chunk {self.currentChunkID} trotzdem gespeichert da wordcount < 1.5* maxwords)')
+                                            self.currentChunkID +=1                                     
                                     if paracount >= self.maxps : 
                                         log.printlog('break maxps: ' + str(paracount))
                                         outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapter_id))
                                         self.currentChunkID +=1
                                     chunktext = ''
-                                    paracount = 0 
+                                    paracount = 0
+                        else:
+                            if debugmode: log.printlog('empty elementtext in chunkitem')
                 else:
                     if debugmode: log.printlog('empty chunkitem')
                 last_source_chaptername = chunkitem.source_chaptername
                 last_chapter_id = chunkitem.chapter_id
-        if chunktext != '': # letztes <p> im Kapitel aufnehmen
-            outputchunks.append(Chunk(chunkitem.source_chaptername,self.currentChunkID,'text',chunktext,chunkitem.chapter_id)) 
-            self.currentChunkID +=1       
+            if chunktext != '': # letztes <p> oder mehrere im Kapitel aufnehmen
+                outputchunks.append(Chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapter_id)) 
+                self.currentChunkID +=1       
         for chunkitem in outputchunks:
             log.printlog(f'id: {chunkitem.chapter_id}, {chunkitem.source_chaptername}, {chunkitem.chunk_id}, {chunkitem.chunktype}, (wordcount: {chunkitem.content.count(" ")})')
         return outputchunks
