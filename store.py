@@ -25,8 +25,8 @@ class Chunk:
         self.chunk_id = chunk_id
         self.content = content
         self.chunktype = chunktype # text, image, heading, table, raw 
-        self.headinglevel = None
-        self.imagedata = None
+        self.headinglevel = ''
+        self.imagedata = ''
         self.metadata: list[dict[str, Any]] = []
     
     def htmlp(self, do_jaccard_clean = False) -> str: # für epubPublication
