@@ -116,7 +116,8 @@ class Chunker: # pylint: disable=unused-variable
                         src_match = re.search(r'src="([^"]+)"', match.group('img'))
                         if src_match:
                             src = src_match.group(1)
-                            outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'image', src, last_chapter_id))
+                            imagefilename = 'images/' + os.path.basename(str(src)) # Pfadnamen standardisieren
+                            outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'image', imagefilename, last_chapter_id))
                             self.currentChunkID += 1
                     elif match.group('heading'):
                         if chunktext != '': # chunkitem beenden, bisher gesammelten Text packen
