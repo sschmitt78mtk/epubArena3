@@ -45,6 +45,8 @@ class Chunk:
                 if jaccardwin < 0.99: log.printlog(f"Jaccard_clean ({self.chunk_id}): {jaccardwin:.2f}")
             #if content2 != self.content: print('jaccard:' + self.content)
             if config.cfg.use_markdown: content2 = markdown.markdown(content2)
+            if '\n' in content2:
+                content2 = content2.replace('\n', '<br>').replace('</p><br>','</p>')
             htmlp = f'<p class="normal">{content2}</p>\n'
         return htmlp
     
