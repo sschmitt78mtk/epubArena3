@@ -31,7 +31,7 @@ def upload_file(): # pylint: disable=unused-variable
     file = request.files["file"]
     if file.filename == "":
         return jsonify({"error": "Keine Datei ausgewählt"}), 400       
-    file_path = os.path.join(config.PATH_INP + str(file.filename))
+    file_path = config.PATH_INP / file.filename
     if str(file_path).endswith('epub'):
         file.save(file_path)
         statustext = f"Datei {file_path} erfolgreich hochgeladen"
@@ -143,8 +143,8 @@ def get_prompts():  # pylint: disable=unused-variable
 
 @app.route('/get_api_configs')
 def get_api_configs(): # pylint: disable=unused-variable
-    if os.path.exists(config.PATH_CFG + config.API_CONFIG_FILE):
-        with open(config.PATH_CFG + config.API_CONFIG_FILE, 'r', encoding="utf-8") as f:
+    if os.path.exists(config.API_CONFIG_FILE):
+        with open(config.API_CONFIG_FILE, 'r', encoding="utf-8") as f:
             configs = json.load(f)
     else:
         configs = []
@@ -174,8 +174,8 @@ def save_prompts2(): # pylint: disable=unused-variable
             return jsonify(success=False, message=f"Prompt nicht vollständig: {str(exc)}"), 400
 
     try:
-        save_promptsets(prompts, config.PATH_CFG + config.PROMPTS_JSON_FILE)
-        config.all_promptset = load_promptsets(config.PATH_CFG + config.PROMPTS_JSON_FILE) # Prompts nach dem bearbeiten neu laden
+        save_promptsets(prompts, str(config.PROMPTS_JSON_FILE))
+        config.all_promptset = load_promptsets(str(config.PROMPTS_JSON_FILE)) # Prompts nach dem bearbeiten neu laden
     except Exception as exc:
         return jsonify(success=False, message=f"Speichern fehlgeschlagen: {str(exc)}"), 500
 
@@ -228,7 +228,7 @@ def download_file(filename): # pylint: disable=unused-variable
     return send_from_directory(config.PATH_OUT, filename, as_attachment=True)
 
 def load_lastConfig() -> None:
-    pklFilename = config.PATH_PKL + 'laststate.pkl'
+    pklFilename = config.PATH_PKL / 'laststate.pkl'
     try:
         with open(pklFilename, 'rb') as f:
             config.cfg = pickle.load(f)
@@ -239,7 +239,7 @@ def load_lastConfig() -> None:
         errorLog.log.printlog(f'{pklFilename} konnte nicht geladen werden. {str(exc)}')
 
 def save_lastConfig() -> None:
-    pklFilename = config.PATH_PKL + 'laststate.pkl'
+    pklFilename = config.PATH_PKL / 'laststate.pkl'
     try:
         with open(pklFilename, 'wb') as f:
             pickle.dump(config.cfg, f)

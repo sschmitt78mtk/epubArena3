@@ -52,7 +52,7 @@ from errorLog import log
 def main(ePubFilename: str) -> None:
     config.app_running = True
     ePubFilename = os.path.basename(ePubFilename) # Pfad ignorieren
-    log.setFilename(config.PATH_LOG + ePubFilename + '.log',"errors.log")
+    log.setFilename(str(config.PATH_LOG / (ePubFilename + '.log')),"errors.log")
     log.printlog(f'Programm gestartet - {ePubFilename}')
     estore = loadstore(ePubFilename)
     estore.info()
@@ -146,12 +146,12 @@ if config.SUPPORT_KEYBOARD_BREAK:
   
 def run() -> None:
     if config.cfg.batch_jobs:
-        for file in glob.glob(config.PATH_INP + "*.epub"):
+        for file in glob.glob(str(config.PATH_INP / "*.epub")):
             if config.continue_process: 
                 main(file)
             else:
                 log.printlog(f'Skipped {file} (Nutzerabbruch)')
-    elif os.path.exists(config.PATH_INP + config.cfg.gePubFilename):
+    elif os.path.exists(config.PATH_INP / config.cfg.gePubFilename):
         main(config.cfg.gePubFilename)
     else:
         log.printlog(f'Abbruch, die Datei "{config.cfg.gePubFilename}" existiert nicht.')
