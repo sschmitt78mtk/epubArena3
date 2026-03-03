@@ -110,7 +110,7 @@ class Mainstore:
    
     def save(self) -> None:
         try:
-            with open(config.PATH_PKL + self.pkl_filename, 'wb') as file:
+            with open(config.PATH_PKL / self.pkl_filename, 'wb') as file:
                 pickle.dump(self, file)
         except Exception as exc:
             log.error(f'Fehler beim Schreiben von {self.pkl_filename}, {str(exc)}')
@@ -173,7 +173,7 @@ class Mainstore:
         self.translations = [t for t in self.translations if t.modelname != modname]                                       
    
 def loadstore(source_epub_filename: str) -> Mainstore: # pylint: disable=unused-variable
-    pkl_filename = config.PATH_PKL + source_epub_filename + '.pkl'
+    pkl_filename = config.PATH_PKL / (source_epub_filename + '.pkl')
     try:
         with open(pkl_filename, 'rb') as file:
             data = pickle.load(file)
@@ -221,7 +221,7 @@ class Publication: # pylint: disable=unused-variable
         html_str += '</body>\n</html>'
         if save_file:
             try:
-                with open(config.PATH_OUT + self.html_filename, "w", encoding="utf-8") as text_file:
+                with open(config.PATH_OUT / self.html_filename, "w", encoding="utf-8") as text_file:
                     text_file.write(html_str)
             except Exception as exc:
                 log.error(f'Fehler beim Schreiben von {self.html_filename}, {str(exc)}')
@@ -285,7 +285,7 @@ class Publication: # pylint: disable=unused-variable
         html_str += '</tr>\n'  
         html_str += '</tbody></table><br></div>\n</body>\n</html>'
         try:
-            with open(config.PATH_OUT + self.html_filename, "w", encoding="utf-8") as text_file:
+            with open(config.PATH_OUT / self.html_filename, "w", encoding="utf-8") as text_file:
                     text_file.write(html_str)
         except Exception as exc:
             log.error(f'Fehler beim Schreiben von {self.html_filename}, {str(exc)}')
@@ -337,7 +337,7 @@ class Publication: # pylint: disable=unused-variable
             for echapter in all_chapters:
                 book.add_item(echapter)        
             
-            booksource = epub.read_epub(config.PATH_INP + self.source_epub_filename)
+            booksource = epub.read_epub(str(config.PATH_INP / self.source_epub_filename))
             epubimages = list(booksource.get_items_of_type(ebooklib.ITEM_IMAGE)) + list(booksource.get_items_of_type(ebooklib.ITEM_COVER))
             for image in epubimages:
                 image.file_name = 'images/' + os.path.basename(image.file_name) # Pfadnamen standardisieren
@@ -349,7 +349,7 @@ class Publication: # pylint: disable=unused-variable
             book.add_item(epub.EpubNav())
 
             try:
-                epub.write_epub(config.PATH_OUT + epubfilename, book, {})
+                epub.write_epub(str(config.PATH_OUT / epubfilename), book, {})
             except Exception as exc:
                 log.error(f'Fehler beim Schreiben von {epubfilename}, {str(exc)}')
         else:
@@ -360,7 +360,7 @@ class Publication: # pylint: disable=unused-variable
 def getbase64image(epubfilename, imagefilename) -> tuple[str | None, str | None]:
     imagefilename = imagefilename.replace('../','')
     try:
-        book = epub.read_epub(config.PATH_INP + epubfilename)
+        book = epub.read_epub(str(config.PATH_INP / epubfilename))
         epubimages = list(book.get_items_of_type(ebooklib.ITEM_IMAGE)) + list(book.get_items_of_type(ebooklib.ITEM_COVER))
         for image in epubimages:
             if image.get_name() == imagefilename:

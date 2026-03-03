@@ -25,7 +25,7 @@ class Extractor: # pylint: disable=unused-variable
     
     def extract_chapters(self)  -> None:
         try:
-            book = epub.read_epub(config.PATH_INP + self.source_epubFilename)
+            book = epub.read_epub(str(config.PATH_INP / self.source_epubFilename))
             self.epubimages = list(book.get_items_of_type(ebooklib.ITEM_IMAGE)) + list(book.get_items_of_type(ebooklib.ITEM_COVER))
             self.epubchapters = list(book.get_items_of_type(ebooklib.ITEM_DOCUMENT))
             self.title = book.get_metadata('DC', 'title')[0][0] if book.get_metadata('DC', 'title') else 'Unbekannter Titel'

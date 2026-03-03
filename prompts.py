@@ -73,12 +73,12 @@ class Promptset:
 def save_promptsets(promptsets: list[Promptset], filename: str) -> None: # pylint: disable=unused-variable
     """Speichert PromptSets als JSON"""
     data = [ps.to_dict() for ps in promptsets]
-    with open(config.PATH_CFG + filename, 'w', encoding='utf-8') as f:
+    with open(config.PROMPTS_JSON_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 def load_promptsets(filename: str) -> list[Promptset]: # pylint: disable=unused-variable
     """Lädt PromptSets aus JSON"""
-    with open(filename, 'r', encoding='utf-8') as f:
+    with open(config.PROMPTS_JSON_FILE, 'r', encoding='utf-8') as f:
         data = json.load(f)
     return [Promptset.from_dict(item) for item in data]
 
