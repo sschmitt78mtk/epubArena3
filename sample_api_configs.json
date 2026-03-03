@@ -1,0 +1,39 @@
+[
+    {
+        "name": "deepseek",
+        "OPENAI_API_BASE": "https://api.deepseek.com/v1",
+        "OPENAI_API_KEY": "sk-a2.1",
+        "OPEN_API_MODELNAME": "deepseek-chat",
+        "modelname": "deepseek"
+    },
+	{
+        "name": "chatGPT gpt-4.1",
+        "OPENAI_API_BASE": "https://api.openai.com/v1",
+        "OPENAI_API_KEY": "sk-a2.1",
+        "OPEN_API_MODELNAME": "gpt-4.1",
+        "modelname": "gpt-4.1"
+    },
+    {
+        "name": "chatGPT GPT-4.1 mini",
+        "OPENAI_API_BASE": "https://api.openai.com/v1",
+                "OPENAI_API_KEY": "sk-a2.1",
+        "OPEN_API_MODELNAME": "gpt-4.1-mini",
+        "modelname": "gpt-4.1-mini"
+    },
+    {
+        "name": "Local API occiglot-Q8",
+        "OPENAI_API_BASE": "http://127.0.0.1:5005/v1",
+        "OPENAI_API_KEY": "lm-studio",
+        "OPEN_API_MODELNAME": "occiglot-7b-de-en-instruct@q8_0",
+        "modelname": "occiglot-Q8"
+    },
+	{
+        "name": "runpod L4 API occiglot-Q8",
+        "OPENAI_API_BASE": "https://cv5....proxy.runpod.net/v1",
+        "OPENAI_API_KEY": "lm-studio",
+        "OPEN_API_MODELNAME": "occiglot-7b-de-en-instruct@q8_0",
+        "modelname": "occiglot-Q8"
+    }
+]
+
+
