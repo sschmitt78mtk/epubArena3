@@ -1,0 +1,12 @@
+
+services:
+  web:
+    image: epubarena3e:latest
+    container_name: epubarena3e
+    restart: unless-stopped
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - ./data:/data # docker compose --project-directory /home/userxyz/epubarenadata
+    ports:
+      - "8080:8080"
