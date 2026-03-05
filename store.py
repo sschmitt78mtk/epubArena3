@@ -30,6 +30,8 @@ class Chunk:
         self.metadata: list[dict[str, Any]] = []
     
     def htmlp(self, do_jaccard_clean = False) -> str: # für epubPublication
+        if self.chunktype == 'table' or self.chunktype == 'pre':
+            return self.content
         htmlsafecontent = htmlsafe(self.content)
         htmlp = ''
         if self.chunktype == "heading":
