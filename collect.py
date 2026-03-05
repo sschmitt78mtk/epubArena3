@@ -92,6 +92,7 @@ class Chunker: # pylint: disable=unused-variable
             for chunkitem in inputchunks:
                 tag_regex = re.compile(
                     r'(?P<table><table.*?>.*?</table>)|'
+                    r'(?P<pre><pre.*?>.*?</pre>)|'
                     r'(?P<img><img\s+[^>]*src="([^"]+)"[^>]*>)|'
                     r'(?P<heading><h[1-6][^>]*>.*?</h[1-6]>)|'
                     r'(?P<para><p[^>]*>.*?</p>)|'
@@ -106,6 +107,14 @@ class Chunker: # pylint: disable=unused-variable
                             chunktext = ''
                             paracount = 0
                         outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'table', match.group('table'), last_chapter_id))
+                        self.currentChunkID += 1
+                    elif match.group('pre'):
+                        if chunktext != '': # chunkitem beenden, bisher gesammelten Text packen
+                            outputchunks.append(Chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapter_id))
+                            self.currentChunkID +=1
+                            chunktext = ''
+                            paracount = 0
+                        outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'table', match.group('pre'), last_chapter_id))
                         self.currentChunkID += 1
                     elif match.group('img'):
                         if chunktext != '': # chunkitem beenden, bisher gesammelten Text packen
