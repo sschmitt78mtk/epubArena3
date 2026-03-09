@@ -2,6 +2,8 @@
 
 epubArena3 is a EPUB processing and translation pipeline that uses Large Language Models (LLMs) to transform EPUB files through customizable workflows including summarization, translation, and content analysis. The system provides both command-line and web-based GUI interfaces for managing EPUB processing tasks.
 
+**Note:** This project is functional, but is still under active development with improvements and updates.
+
 ## Overview
 
 This project enables automated processing of EPUB files through a multi-step pipeline:
@@ -31,9 +33,14 @@ This project enables automated processing of EPUB files through a multi-step pip
 - **Resume Capability**: Save progress as pickle files for continuation
 
 ### User Interfaces
-- **Web GUI**: Flask-based interface for configuration and monitoring
+- **Web GUI**: Flask-based interface (original) and FastAPI-based interface (modern)
 - **Command-Line Interface**: Script-based processing for automation
 - **Real-time Monitoring**: Live log viewing and progress tracking
+
+### Deployment Options
+- **Local Development**: Python virtual environment
+- **Docker Container**: Pre-configured container for easy deployment
+- **Docker Compose**: Simplified multi-container deployment with data persistence
 
 ## Architecture
 
@@ -47,7 +54,8 @@ This project enables automated processing of EPUB files through a multi-step pip
 | `store.py` | Data persistence and Publication (HTML/EPUB generation) |
 | `call.py` | LLM API communication layer |
 | `config.py` | Configuration management |
-| `gui3.py` | Web interface (Flask) |
+| `gui3.py` | Web interface (Flask - original) |
+| `fastapi_gui.py` | Web interface (FastAPI - modern) |
 | `prompts.py` | Prompt management system |
 | `jaccard.py` | Text similarity/comparison (quality checking) |
 | `errorLog.py` | Comprehensive logging system |
@@ -62,41 +70,33 @@ EPUB File → extractor → cleaner → chunker → processor → store → Publ
 ## Project Structure
 
 ```
-├── input/          # EPUB files to process
-├── output/         # Generated HTML and EPUB files
-├── pkl/           # Progress persistence (pickle files)
-├── logs/          # Processing logs
-├── static/        # Web GUI assets (CSS, JavaScript)
-├── templates/     # HTML templates for web interface
-├── api_configs_sample.json  # API endpoint configurations
-├── prompts_sample.json      # Default prompt configurations
-├── requirements.txt         # Python dependencies
-├── config.py               # Application configuration
-└── *.py                    # Core Python modules
+├── data/                    # Application data (created automatically)
+│   ├── cfg/                # Configuration files (prompts.json, api_configs.json)
+│   ├── input/              # EPUB files to process
+│   ├── output/             # Generated HTML and EPUB files
+│   └── pkl/                # Progress persistence (pickle files)
+├── static/                 # Web GUI assets (CSS, JavaScript)
+├── templates/              # HTML templates for web interface
+├── sample_api_configs.json # Sample API endpoint configurations
+├── sample_prompts.json     # Sample prompt configurations
+├── requirements.txt        # Python dependencies
+├── dockerrequirements.txt  # Docker-specific dependencies
+├── Dockerfile             # Docker container definition
+├── docker-compose.yml     # Docker Compose configuration
+├── _start_epubArena3.bat  # Windows batch startup script
+├── config.py              # Application configuration
+└── *.py                   # Core Python modules
 ```
-
-## Configuration System
-
-### Prompt Management
-Prompts are stored in JSON format (`prompts_sample.json`, `prompts.json`) with each prompt containing:
-- System message
-- Pre/Post prompts
-- Temperature, top_p, max token limits
-- Target language and processing flags
-
-### API Configuration
-Multiple API endpoint configurations in `api_configs_sample.json` supporting:
-- Local LLM servers (LM Studio)
-- Remote OpenAI-compatible APIs
-- Custom model configurations
 
 ## Installation & Setup
 
 ### Prerequisites
-- Python 3.12+
-- Virtual environment recommended
+- Python 3.12+ (for local development)
+- Docker and Docker Compose (for containerized deployment)
+- Virtual environment recommended for local development
 
-### Installation
+### Option 1: Local Development Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/sschmitt78mtk/epubArena3.git
@@ -110,22 +110,76 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Running the Application
+### Option 2: Docker Installation
 
-**Web GUI:**
 ```bash
-python gui3.py
-# Access at http://127.0.0.1:8080
+# Build the Docker image
+docker build -t epubarena3e:latest .
+
+# Or use Docker Compose
+docker-compose up -d
 ```
 
-**Command Line:**
+### Option 3: Windows Quick Start
+Run `_start_epubArena3.bat` to start the application with a pre-configured virtual environment.
+
+## Configuration System
+
+### Prompt Management
+Prompts are stored in JSON format (`sample_prompts.json`, `data/cfg/prompts.json`) with each prompt containing:
+- System message
+- Pre/Post prompts
+- Temperature, top_p, max token limits
+- Target language and processing flags
+
+### API Configuration
+Multiple API endpoint configurations in `sample_api_configs.json` supporting:
+- Local LLM servers (LM Studio)
+- Remote OpenAI-compatible APIs
+- Custom model configurations
+
+### Configuration Migration
+On first run, sample configuration files are automatically copied to `data/cfg/`:
+- `sample_api_configs.json` → `data/cfg/api_configs.json`
+- `sample_prompts.json` → `data/cfg/prompts.json`
+
+## Running the Application
+
+### Web GUI (Recommended)
+```bash
+# Local development with Flask (original)
+python gui3.py
+# Access at http://127.0.0.1:8080
+
+# Local development with FastAPI (modern)
+python fastapi_gui.py
+# Access at http://127.0.0.1:8082
+
+# Docker (uses Flask)
+docker-compose up
+# Access at http://localhost:8080
+```
+
+### Command Line
 ```bash
 python epubArena3.py
 ```
 
-**Batch Processing:**
+### Docker Deployment
+```bash
+# Build and run with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the container
+docker-compose down
+```
+
+### Batch Processing
 - Configure `config.py` or use web interface
-- Place EPUB files in `input/` directory
+- Place EPUB files in `data/input/` directory
 - Enable batch processing mode
 
 ## Usage Examples
@@ -146,37 +200,64 @@ python epubArena3.py
 2. Compare outputs side-by-side
 3. Analyze differences in translation quality
 
+### 4. Docker-based Processing
+```bash
+# Start the Docker container
+docker-compose up -d
+
+# Upload EPUB files to data/input directory
+cp your-book.epub data/input/
+
+# Access web interface at http://localhost:8080
+# Configure and process through the GUI
+```
+
 ## Configuration Options
 
 ### Processing Settings
-- **Chunk Size**: Control paragraph and word limits per chunk
+- **Chunk Size**: Control paragraph and word limits per chunk (recently improved for better handling)
 - **LLM Parameters**: Temperature, top_p, max tokens
 - **Model Selection**: Different models for each processing step
 - **Batch Processing**: Process multiple files sequentially
 
 ### Publication Settings
 - **HTML Output**: Side-by-side or single-column views
-- **EPUB Generation**: Include images, preserve formatting
+- **EPUB Generation**: Include images, preserve formatting (recently improved with better HTML handling)
 - **Jaccard Clean**: Text similarity filtering
+
+## Recent Improvements
+
+The project has seen significant recent development including:
+
+- **FastAPI Migration**: Modern web interface with async support and automatic OpenAPI documentation
+- **Enhanced Chunking System**: Improved paragraph and word-based chunking with duplicate prevention
+- **EPUB Output Fixes**: Better handling of HTML tags in EPUB regeneration
+- **Docker Support**: Full containerization with Dockerfile and docker-compose.yml
+- **Configuration Persistence**: Automatic saving and loading of processing state
+- **Image Handling**: Normalized image filenames in EPUB output
+- **Path Management**: Improved cross-platform file path handling
 
 ## Technology Stack
 
 - **Python 3.12+** with extensive typing annotations
-- **Flask** for web interface
+- **Flask** for web interface (original)
+- **FastAPI** for modern web interface with async support and OpenAPI documentation
 - **OpenAI SDK** for LLM communication
 - **EbookLib** for EPUB manipulation
 - **BeautifulSoup4** for HTML processing
 - **Spacy** (optional) for text analysis via Jaccard similarity
 - **Markdown** support for content conversion
+- **Docker** for containerization
 
 ## Development Status
 
-The project is actively maintained with:
+The project is actively maintained and under continuous development with:
 - Comprehensive error handling and logging
 - Configuration persistence
 - Support for both CLI and GUI operation
 - Batch processing capabilities
 - Regular updates and improvements
+- Docker support for easy deployment
 
 ## Code Quality
 - Type hints throughout the codebase
@@ -210,3 +291,5 @@ For issues and feature requests, please use the GitHub issue tracker.
 ---
 
 *Note: This project is designed for processing EPUB files for educational and research purposes. Always ensure you have the appropriate rights to process and modify any EPUB files.*
+
+*Development Status: This project is functional and actively used, but is still under active development with regular improvements and updates.*
