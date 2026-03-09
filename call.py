@@ -1,5 +1,5 @@
 from __future__ import annotations # pylint: disable=unused-variable
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 from errorLog import log
 from prompts import Promptset
 import config
@@ -28,6 +28,10 @@ class Llmcaller: # pylint: disable=unused-variable
         self.top_p = 0.8
         self.simulate = simulate
         self.local_llm = OpenAI(
+                    base_url=self.api_base_url,
+                    api_key=self.api_key
+                )
+        self.async_llm = AsyncOpenAI(
                     base_url=self.api_base_url,
                     api_key=self.api_key
                 )
@@ -68,6 +72,39 @@ class Llmcaller: # pylint: disable=unused-variable
             return answer
         except Exception as e:
             log.error(f'Llmcaller requestOAi error {str(e)}')
+            return None
+    
+    async def request_async(self, instructtext: str, activepromptset: Promptset | None, max_tokenoverride=0) -> str | None:
+        """Async version of request method for parallel processing"""
+        if self.simulate:
+            return 'SIMOK'
+        if activepromptset is None:
+            log.error('Request activepromptset is None')
+            return None
+        
+        requesttext = activepromptset.prePrompt + instructtext + activepromptset.postPrompt
+        if config.cfg.llm_from_file:
+            # Run sync directLLMfromFile in thread for async compatibility
+            import asyncio
+            return await asyncio.to_thread(self.directLLMfromFile, activepromptset.system_message, requesttext)
+        
+        try:
+            response = await self.async_llm.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": self.system_message},
+                    {"role": "user", "content": instructtext}
+                ],
+                stream=False,
+                seed=self.seed,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                max_tokens=max_tokenoverride if max_tokenoverride > 0 else self.max_tokens
+            )
+            answer = response.choices[0].message.content
+            return answer
+        except Exception as e:
+            log.error(f'Llmcaller request_async error {str(e)}')
             return None
         
     # def requestVialangchain(self, contentstr: str):

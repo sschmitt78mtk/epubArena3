@@ -254,5 +254,5 @@ def open_browser() -> None: # pylint: disable=unused-variable
 if __name__ == '__main__':
     load_lastConfig()
     #threading.Thread(target=open_browser).start() # Starte den Browser in einem separaten Thread
-    app.run(host='0.0.0.0', port=8080, debug=True) # Starte den Flask-Server
+    app.run(host='0.0.0.0', port=8082, debug=True) # Starte den Flask-Server
         
