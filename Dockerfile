@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Python-Abhängigkeiten
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-	pip install --no-cache-dir ebooklib beautifulsoup4 requests markdown markdownify openai flask && \
+	pip install --no-cache-dir ebooklib beautifulsoup4 requests markdown markdownify openai uvicorn fastapi jinja2 && \
 	pip freeze > dockerrequirements.txt
     #pip install --no-cache-dir -r requirements.txt
 	
@@ -33,6 +33,6 @@ COPY . .
 #USER appuser
 
 # Port deklarieren
-EXPOSE 8080
+EXPOSE 8082
 
-CMD ["python", "gui3.py"]
+CMD ["python", "fastapi_gui.py"]
