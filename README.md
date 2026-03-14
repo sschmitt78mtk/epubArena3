@@ -2,7 +2,7 @@
 
 epubArena3 is a EPUB processing and translation pipeline that uses Large Language Models (LLMs) to transform EPUB files through customizable workflows including summarization, translation, and content analysis. The system provides both command-line and web-based GUI interfaces for managing EPUB processing tasks.
 
-**Note:** This project is functional, but is still under active development with improvements and updates.
+**Note:** This project is functional but actively evolving. The `main` branch now tracks the FastAPI GUI and async flow; the previous synchronous/Flask implementation lives in the `synchronous` branch for comparison or fallback.
 
 ## Overview
 
@@ -33,9 +33,9 @@ This project enables automated processing of EPUB files through a multi-step pip
 - **Resume Capability**: Save progress as pickle files for continuation
 
 ### User Interfaces
-- **Web GUI**: Flask-based interface (original) and FastAPI-based interface (modern)
+- **Web GUI**: FastAPI interface (`gui3.py`) is the primary entry point
 - **Command-Line Interface**: Script-based processing for automation
-- **Real-time Monitoring**: Live log viewing and progress tracking
+- **Real-time Monitoring**: Live log viewing and progress tracking inside the FastAPI GUI
 
 ### Deployment Options
 - **Local Development**: Python virtual environment
@@ -54,8 +54,7 @@ This project enables automated processing of EPUB files through a multi-step pip
 | `store.py` | Data persistence and Publication (HTML/EPUB generation) |
 | `call.py` | LLM API communication layer |
 | `config.py` | Configuration management |
-| `gui3.py` | Web interface (Flask - original) |
-| `fastapi_gui.py` | Web interface (FastAPI - modern) |
+| `gui3.py` | FastAPI-based GUI entry point (current primary UI) |
 | `prompts.py` | Prompt management system |
 | `jaccard.py` | Text similarity/comparison (quality checking) |
 | `errorLog.py` | Comprehensive logging system |
@@ -77,10 +76,9 @@ EPUB File → extractor → cleaner → chunker → processor → store → Publ
 │   └── pkl/                # Progress persistence (pickle files)
 ├── static/                 # Web GUI assets (CSS, JavaScript)
 ├── templates/              # HTML templates for web interface
-├── sample_api_configs.json # Sample API endpoint configurations
-├── sample_prompts.json     # Sample prompt configurations
+├── sample_api_configs.json # Sample API endpoint configurations, actually use them in data/cfg
+├── sample_prompts.json     # Sample prompt configurations, actually use them in data/cfg
 ├── requirements.txt        # Python dependencies
-├── dockerrequirements.txt  # Docker-specific dependencies
 ├── Dockerfile             # Docker container definition
 ├── docker-compose.yml     # Docker Compose configuration
 ├── _start_epubArena3.bat  # Windows batch startup script
@@ -92,7 +90,7 @@ EPUB File → extractor → cleaner → chunker → processor → store → Publ
 
 ### Prerequisites
 - Python 3.12+ (for local development)
-- Docker and Docker Compose (for containerized deployment)
+- Docker and Docker Compose (for containerized deployment) - optional
 - Virtual environment recommended for local development
 
 ### Option 1: Local Development Installation
@@ -114,7 +112,7 @@ pip install -r requirements.txt
 
 ```bash
 # Build the Docker image
-docker build -t epubarena3e:latest .
+docker build -t epubarena3-20260309:latest .
 
 # Or use Docker Compose
 docker-compose up -d
@@ -145,19 +143,11 @@ On first run, sample configuration files are automatically copied to `data/cfg/`
 
 ## Running the Application
 
-### Web GUI (Recommended)
+### FastAPI Web GUI (default)
 ```bash
-# Local development with Flask (original)
+# Local development GUI
 python gui3.py
-# Access at http://127.0.0.1:8080
-
-# Local development with FastAPI (modern)
-python fastapi_gui.py
-# Access at http://127.0.0.1:8082
-
-# Docker (uses Flask)
-docker-compose up
-# Access at http://localhost:8080
+# Access at http://127.0.0.1:8083
 ```
 
 ### Command Line
@@ -208,7 +198,7 @@ docker-compose up -d
 # Upload EPUB files to data/input directory
 cp your-book.epub data/input/
 
-# Access web interface at http://localhost:8080
+# Access web interface at http://localhost:8083
 # Configure and process through the GUI
 ```
 
@@ -223,7 +213,7 @@ cp your-book.epub data/input/
 ### Publication Settings
 - **HTML Output**: Side-by-side or single-column views
 - **EPUB Generation**: Include images, preserve formatting (recently improved with better HTML handling)
-- **Jaccard Clean**: Text similarity filtering
+- **Jaccard Clean**: Text similarity filtering (experimental)
 
 ## Recent Improvements
 
@@ -234,18 +224,15 @@ The project has seen significant recent development including:
 - **EPUB Output Fixes**: Better handling of HTML tags in EPUB regeneration
 - **Docker Support**: Full containerization with Dockerfile and docker-compose.yml
 - **Configuration Persistence**: Automatic saving and loading of processing state
-- **Image Handling**: Normalized image filenames in EPUB output
 - **Path Management**: Improved cross-platform file path handling
 
 ## Technology Stack
 
 - **Python 3.12+** with extensive typing annotations
-- **Flask** for web interface (original)
 - **FastAPI** for modern web interface with async support and OpenAPI documentation
 - **OpenAI SDK** for LLM communication
 - **EbookLib** for EPUB manipulation
 - **BeautifulSoup4** for HTML processing
-- **Spacy** (optional) for text analysis via Jaccard similarity
 - **Markdown** support for content conversion
 - **Docker** for containerization
 
@@ -256,7 +243,6 @@ The project is actively maintained and under continuous development with:
 - Configuration persistence
 - Support for both CLI and GUI operation
 - Batch processing capabilities
-- Regular updates and improvements
 - Docker support for easy deployment
 
 ## Code Quality
