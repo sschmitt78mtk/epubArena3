@@ -36,9 +36,9 @@ class Llmcaller: # pylint: disable=unused-variable
                     api_key=self.api_key
                 )
         if config.cfg.llm_from_file:
+            model_path_str = config.PATH_CFG / self.model
             try:
                 from llama_cpp import Llama
-                model_path_str = "./" + self.model
                 self.dllm = Llama(
                     model_path=model_path_str,
                     n_ctx=2048,          # Kontextlänge
