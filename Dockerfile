@@ -35,4 +35,4 @@ COPY . .
 # Port deklarieren
 EXPOSE 8083
 
-CMD ["python", "fastapi_gui.py"]
+CMD ["python", "gui3.py"]
