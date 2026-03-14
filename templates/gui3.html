@@ -249,16 +249,16 @@
         </div>
         <div id="cinema2">
         <br>
-        <button class="startstopbutton" type="submit" name="start">START</button>
+        <button class="startstopbutton" type="submit" name="start" value="1">START</button>
     </form>
     <form method="POST">
-        <button class="startstopbutton" type="submit" name="stop">STOP</button>
+        <button class="startstopbutton" type="submit" name="stop" value="1">STOP</button>
     </form>
     <form method="POST" onsubmit="return confirmDelete()">
         <br>
         <label class="description" for="modeltodelete">translation modelname to delete:</label>
         <input type="text" class="modeltodelete" id="modeltodelete" name="modeltodelete" value="{{modeltodelete}}"><br>
-        <button class="deletebutton" type="submit" name="delete">DELETE</button>
+        <button class="deletebutton" type="submit" name="delete" value="1">DELETE</button>
     </form>
 </div>
     

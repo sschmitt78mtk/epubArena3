@@ -1,3 +1,4 @@
+import asyncio
 import os
 import pickle
 import glob
@@ -25,11 +26,17 @@ from prompts import Promptset, load_promptsets, save_promptsets
 
 app = FastAPI(title="epubArena 3 FastAPI")
 
+# Base directory of this module (ensures relative paths work even when uvicorn
+# is started from elsewhere).
+BASE_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
+
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # Setup Jinja2 templates
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 # Add url_for function to template globals (compatibility with Flask templates)
 def url_for(endpoint: str, **kwargs):
@@ -150,7 +157,7 @@ async def index_post(
 ):
     Errors = ''
     
-    if start:
+    if start is not None:
         if config.app_running:
             errorLog.log.printlog('Web: Start noch nicht möglich (laufender Prozess wird beendet)')
             config.continue_process = False
@@ -201,15 +208,15 @@ async def index_post(
                 config.continue_process = True
                 print(config.cfg.__dict__)
                 save_lastConfig()
-                epubArena3.run()
+                asyncio.create_task(asyncio.to_thread(epubArena3.run))
             else:
                 errorLog.log.printlog(f'KEIN Start weil: {Errors}')
     
-    elif stop:
+    elif stop is not None:
         config.continue_process = False
         errorLog.log.printlog('Web: Stop (aktueller chunk wird noch beendet)')
     
-    elif delete:
+    elif delete is not None:
         modelname2delete = modeltodelete or ""
         errorLog.log.printlog(f'Web: Versuche Löschen der Translation mit Name "{modelname2delete}"')
         try:
@@ -359,9 +366,9 @@ def save_lastConfig() -> None:
 
 def open_browser() -> None:
     time.sleep(1)
-    webbrowser.open('http://127.0.0.1:8082/')
+    webbrowser.open('http://127.0.0.1:8083/')
 
 if __name__ == '__main__':
     load_lastConfig()
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8082)
+    uvicorn.run(app, host="0.0.0.0", port=8083)
