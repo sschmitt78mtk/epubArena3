@@ -52,6 +52,7 @@ class Processor:
         
         # Prepare chunks for processing
         chunks_to_process: List[Tuple[Chunk, Chunk]] = []
+        existing_chunk_ids = {chunk.chunk_id for chunk in self.processedTranslation.chunks}
         for chunkitem in self.sourcetranslation.chunks:
             if not config.continue_process:
                 break
@@ -66,7 +67,8 @@ class Processor:
             
             if not nextprocessedchunk:
                 nextprocessedchunk = copy.deepcopy(chunkitem)  # !Deepcopy
-                self.processedTranslation.chunks.append(nextprocessedchunk)
+                if chunkitem.chunktype in self.sourcetranslation.chunk_type_no_process:
+                    self.processedTranslation.chunks.append(nextprocessedchunk)
             
             if chunkitem.chunktype not in self.sourcetranslation.chunk_type_no_process:
                 chunks_to_process.append((chunkitem, nextprocessedchunk))
@@ -110,6 +112,8 @@ class Processor:
                         if chunkitem.chunktype == 'heading' and config.cfg.translate_heading:
                             nextprocessedchunk.content = chunkitem.content + ' (' + nextcontent + ')'
                         
+                        if nextprocessedchunk.chunk_id not in existing_chunk_ids:
+                            self.processedTranslation.chunks.append(nextprocessedchunk)
                         log.print(f'{nextprocessedchunk.content}')
                         return True
                     else:
@@ -201,6 +205,7 @@ class ProcessorMultiSource(Processor): # pylint: disable=unused-variable
         
         # Prepare chunks for processing
         chunks_to_process: List[Tuple[Chunk, Chunk]] = []
+        existing_chunk_ids = {chunk.chunk_id for chunk in self.processedTranslation.chunks}
         for chunkitem in self.sourcetranslations[0].chunks:
             if not config.continue_process:
                 break
@@ -215,7 +220,11 @@ class ProcessorMultiSource(Processor): # pylint: disable=unused-variable
             
             if not nextprocessedchunk:
                 nextprocessedchunk = copy.deepcopy(chunkitem)  # !Deepcopy
-                self.processedTranslation.chunks.append(nextprocessedchunk)
+                if chunkitem.chunktype not in self.sourcetranslations[0].chunk_type_no_process:
+                    # defer append until processed to avoid placeholders on abort
+                    pass
+                else:
+                    self.processedTranslation.chunks.append(nextprocessedchunk)
             
             if chunkitem.chunktype not in self.sourcetranslations[0].chunk_type_no_process:
                 chunks_to_process.append((chunkitem, nextprocessedchunk))
@@ -248,6 +257,8 @@ class ProcessorMultiSource(Processor): # pylint: disable=unused-variable
                     
                     if nextcontent:
                         nextprocessedchunk.content = nextcontent
+                        if nextprocessedchunk.chunk_id not in existing_chunk_ids:
+                            self.processedTranslation.chunks.append(nextprocessedchunk)
                         log.print(f'{nextprocessedchunk.content}')
                         return True
                     else:
