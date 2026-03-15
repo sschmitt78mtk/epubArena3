@@ -10,6 +10,8 @@ LOCAL_OPEN_API_MODELNAME="occiglot-7b-de-en-instruct@q8_0"
 LOCAL_OPENAI_API_KEY="lm-studio"
 LOCAL_OPENAI_API_BASE="http://127.0.0.1:5005/v1"
 
+MAX_CONCURRENT_CALLS = 4 # max concurrent API-Calls
+
 # APPSTATE
 app_running = False
 continue_process = True

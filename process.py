@@ -230,7 +230,7 @@ class ProcessorMultiSource(Processor): # pylint: disable=unused-variable
                 chunks_to_process.append((chunkitem, nextprocessedchunk))
         
         # Process chunks in parallel with semaphore limiting to 4 concurrent calls
-        semaphore = asyncio.Semaphore(4)
+        semaphore = asyncio.Semaphore(config.MAX_CONCURRENT_CALLS)
         autosaveno = 0
         
         async def process_chunk(chunkitem: Chunk, nextprocessedchunk: Chunk) -> bool:
