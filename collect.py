@@ -96,7 +96,10 @@ class Chunker: # pylint: disable=unused-variable
                     r'(?P<img><img\s+[^>]*src="([^"]+)"[^>]*>)|'
                     r'(?P<heading><h[1-6][^>]*>.*?</h[1-6]>)|'
                     r'(?P<para><p[^>]*>.*?</p>)|'
-                    r'(?P<li><li[^>]*>.*?</li>)',
+                    r'(?P<li><li[^>]*>.*?</li>)|'
+                    r'(?P<q><q[^>]*>.*?</q>)|'
+                    r'(?P<dd><dd[^>]*>.*?</dd>)|'
+                    r'(?P<dt><dt[^>]*>.*?</dt>)',
                     re.DOTALL | re.IGNORECASE
                 )
                 for match in tag_regex.finditer(chunkitem.content):
@@ -156,8 +159,20 @@ class Chunker: # pylint: disable=unused-variable
                             chunktext += '\n' + text
                     elif match.group('li'):
                         text = re.sub(r'<.*?>', '', match.group('li')).strip()
+                        chunktext += '\n* ' + text
+                        paracount +=1
+                    elif match.group('q'):
+                        text = re.sub(r'<.*?>', '', match.group('q')).strip()
                         chunktext += '\n' + text
                         paracount +=1
+                    elif match.group('dd'):
+                        text = re.sub(r'<.*?>', '', match.group('dd')).strip()
+                        chunktext += '\n' + text
+                        paracount +=1
+                    elif match.group('dt'):
+                        text = re.sub(r'<.*?>', '', match.group('dt')).strip()
+                        chunktext += '\n' + text
+                        paracount +=1                        
                         
                 last_source_chaptername = chunkitem.source_chaptername
                 last_chapter_id = chunkitem.chapter_id    
