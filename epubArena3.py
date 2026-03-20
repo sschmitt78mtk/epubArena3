@@ -1,21 +1,11 @@
-# pip install ebooklib
-# pip install beautifulsoup4
-# pip install requests
-# pip install keyboard
-# pip install markdown
-# pip install markdownify
-# pip install openai
+# python 3.12
 # pip install llama-cpp-python (optional für directLLM) -> akutell kein pythoch für 3.13 (3.12 verwenden?)
-# pip install flask
 
 # pip install types-keyboard
 # pip install types-beautifulsoup4
 
-# pip install ebooklib beautifulsoup4 requests keyboard markdown markdownify openai flask
+# pip install ebooklib beautifulsoup4 requests keyboard markdown markdownify openai uvicorn fastapi Jinja2 python-multipart
 # optional für direct : pip install llama-cpp-python
-
-
-# cxfreeze --script epubArena.py
 
 # 1. Environment erstellen
 #python3 -m venv venv_ubuntu
@@ -44,10 +34,6 @@ from errorLog import log
 #from prompts import promptset, get_promptsetByID, load_promptsets, save_promptsets
 
 # pylint: enable=wrong-import-position
-
-
-
-
 
 def main(ePubFilename: str) -> None:
     config.app_running = True
