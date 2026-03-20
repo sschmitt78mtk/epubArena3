@@ -147,7 +147,7 @@ On first run, sample configuration files are automatically copied to `data/cfg/`
 ```bash
 # Local development GUI
 python gui3.py
-# Access at http://127.0.0.1:8083
+# Access at http://127.0.0.1:8080
 ```
 
 ### Command Line
@@ -198,7 +198,7 @@ docker-compose up -d
 # Upload EPUB files to data/input directory
 cp your-book.epub data/input/
 
-# Access web interface at http://localhost:8083
+# Access web interface at http://localhost:8084
 # Configure and process through the GUI
 ```
 
