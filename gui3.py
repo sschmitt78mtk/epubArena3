@@ -366,9 +366,9 @@ def save_lastConfig() -> None:
 
 def open_browser() -> None:
     time.sleep(1)
-    webbrowser.open('http://127.0.0.1:8083/')
+    webbrowser.open('http://127.0.0.1:8080/')
 
 if __name__ == '__main__':
     load_lastConfig()
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8083)
+    uvicorn.run(app, host="0.0.0.0", port=8080)
