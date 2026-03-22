@@ -184,6 +184,8 @@
                 <label for="publish_only">publish_only</label><br/>
                 <input type="checkbox" name="use_markdown" id="use_markdown" {% if use_markdown %}checked{% endif %}>
                 <label for="use_markdown">use_markdown</label><br/>
+                <input type="checkbox" name="preserve_html_attrs" id="preserve_html_attrs" {% if preserve_html_attrs %}checked{% endif %}>
+                <label for="preserve_html_attrs">preserve_html_attrs (Klassen/IDs/Styles behalten)</label><br/>
                 <input type="checkbox" name="llm_from_file" id="llm_from_file" {% if llm_from_file %}checked{% endif %}>
                 <label for="llm_from_file">llm_from_file</label><br/>
                 <input type="checkbox" name="use_langchain" id="use_langchain" {% if use_langchain %}checked{% endif %}>

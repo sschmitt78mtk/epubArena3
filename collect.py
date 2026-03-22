@@ -66,7 +66,9 @@ class Cleaner: # pylint: disable=unused-variable
         self.replaceNewlineChar = replaceNewlineChar
     def clean(self,html_in: str) -> str:
         html_out = html_in
-        if config.cfg.use_markdown:
+        # Wenn preserve_html_attrs aktiv, überspringen wir die Markdown-Konvertierung,
+        # da wir die originalen HTML-Attribute behalten wollen.
+        if config.cfg.use_markdown and not config.cfg.preserve_html_attrs:
             html_out = md(html_out)
         if self.removeEmptyLine:
             html_out = html_out.replace('\n\n','\n')
@@ -149,14 +151,27 @@ class Chunker: # pylint: disable=unused-variable
                         self.currentChunkID += 1
                     # test html-to-markdown
                     else:
-                        text = convert(match.group())
-                        if (chunktext.count(' ') + text.count(' ')) > self.maxwords or paracount >= self.maxps:
-                            outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'text', chunktext, last_chapter_id))
+                        original_html = match.group()
+                        # Reinen Text extrahieren (für LLM)
+                        soup = BeautifulSoup(original_html, 'html.parser')
+                        text = soup.get_text().strip()
+                        
+                        if config.cfg.preserve_html_attrs:
+                            # Erstelle sofort einen Chunk für dieses Element, behalte original_html
+                            new_chunk = Chunk(last_source_chaptername, self.currentChunkID, 'structured', text, last_chapter_id)
+                            new_chunk.original_html = original_html
+                            outputchunks.append(new_chunk)
                             self.currentChunkID += 1
-                            chunktext = ''
-                            paracount = 0
                         else:
-                            chunktext += '\n' + text
+                            # Alte Logik: Konvertiere zu Markdown und sammle
+                            text = convert(original_html)
+                            if (chunktext.count(' ') + text.count(' ')) > self.maxwords or paracount >= self.maxps:
+                                outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'text', chunktext, last_chapter_id))
+                                self.currentChunkID += 1
+                                chunktext = ''
+                                paracount = 0
+                            else:
+                                chunktext += '\n' + text
                         
                     # elif match.group('para'):
                     #     if chunktext != '': chunktext += '\n'

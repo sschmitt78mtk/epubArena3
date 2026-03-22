@@ -108,7 +108,17 @@ class Processor:
                             if wordcountnew > wordcountsource:
                                 nextcontent = chunkitem.content + ' *99'
                         
-                        nextprocessedchunk.content = nextcontent
+                        # Wenn HTML-Attribute erhalten werden sollen, restauriere die originale Struktur
+                        if config.cfg.preserve_html_attrs and hasattr(chunkitem, 'original_html') and chunkitem.original_html:
+                            try:
+                                restored = nextprocessedchunk.restore_html(nextcontent)
+                                nextprocessedchunk.content = restored
+                            except Exception as e:
+                                log.printlog(f"Fehler bei restore_html für Chunk {chunkitem.chunk_id}: {e}")
+                                nextprocessedchunk.content = nextcontent
+                        else:
+                            nextprocessedchunk.content = nextcontent
+                        
                         if chunkitem.chunktype == 'heading' and config.cfg.translate_heading:
                             nextprocessedchunk.content = chunkitem.content + ' (' + nextcontent + ')'
                         
