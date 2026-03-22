@@ -5,6 +5,7 @@ import ebooklib
 from ebooklib import epub
 from bs4 import BeautifulSoup, Tag
 from markdownify import markdownify as md
+from html_to_markdown import convert
 #import store
 from store import Chunk
 from errorLog import log
@@ -146,10 +147,9 @@ class Chunker: # pylint: disable=unused-variable
                         if heading_level:
                             outputchunks[-1].headinglevel = heading_level
                         self.currentChunkID += 1
-                    elif match.group('para'):
-                        if chunktext != '': chunktext += '\n'
-                        paracount +=1
-                        text = re.sub(r'<.*?>', '', match.group('para')).strip()
+                    # test html-to-markdown
+                    else:
+                        text = convert(match.group())
                         if (chunktext.count(' ') + text.count(' ')) > self.maxwords or paracount >= self.maxps:
                             outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'text', chunktext, last_chapter_id))
                             self.currentChunkID += 1
@@ -157,22 +157,34 @@ class Chunker: # pylint: disable=unused-variable
                             paracount = 0
                         else:
                             chunktext += '\n' + text
-                    elif match.group('li'):
-                        text = re.sub(r'<.*?>', '', match.group('li')).strip()
-                        chunktext += '\n* ' + text
-                        paracount +=1
-                    elif match.group('q'):
-                        text = re.sub(r'<.*?>', '', match.group('q')).strip()
-                        chunktext += '\n' + text
-                        paracount +=1
-                    elif match.group('dd'):
-                        text = re.sub(r'<.*?>', '', match.group('dd')).strip()
-                        chunktext += '\n' + text
-                        paracount +=1
-                    elif match.group('dt'):
-                        text = re.sub(r'<.*?>', '', match.group('dt')).strip()
-                        chunktext += '\n' + text
-                        paracount +=1                        
+                        
+                    # elif match.group('para'):
+                    #     if chunktext != '': chunktext += '\n'
+                    #     paracount +=1
+                    #     text = re.sub(r'<.*?>', '', match.group('para')).strip()
+                    #     if (chunktext.count(' ') + text.count(' ')) > self.maxwords or paracount >= self.maxps:
+                    #         outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'text', chunktext, last_chapter_id))
+                    #         self.currentChunkID += 1
+                    #         chunktext = ''
+                    #         paracount = 0
+                    #     else:
+                    #         chunktext += '\n' + text
+                    # elif match.group('li'):
+                    #     text = re.sub(r'<.*?>', '', match.group('li')).strip()
+                    #     chunktext += '\n* ' + text
+                    #     paracount +=1
+                    # elif match.group('q'):
+                    #     text = re.sub(r'<.*?>', '', match.group('q')).strip()
+                    #     chunktext += '\n' + text
+                    #     paracount +=1
+                    # elif match.group('dd'):
+                    #     text = re.sub(r'<.*?>', '', match.group('dd')).strip()
+                    #     chunktext += '\n' + text
+                    #     paracount +=1
+                    # elif match.group('dt'):
+                    #     text = re.sub(r'<.*?>', '', match.group('dt')).strip()
+                    #     chunktext += '\n' + text
+                    #     paracount +=1                        
                         
                 last_source_chaptername = chunkitem.source_chaptername
                 last_chapter_id = chunkitem.chapter_id    
