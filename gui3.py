@@ -146,6 +146,7 @@ async def index_post(
     force_redo: Optional[str] = Form(None),
     publish_only: Optional[str] = Form(None),
     use_markdown: Optional[str] = Form(None),
+    preserve_html_attrs: Optional[str] = Form(None),
     llm_from_file: Optional[str] = Form(None),
     use_langchain: Optional[str] = Form(None),
     processor_autosave: Optional[str] = Form(None),
@@ -183,6 +184,7 @@ async def index_post(
             config.cfg.__dict__['force_redo'] = force_redo == "on"
             config.cfg.__dict__['publish_only'] = publish_only == "on"
             config.cfg.__dict__['use_markdown'] = use_markdown == "on"
+            config.cfg.__dict__['preserve_html_attrs'] = preserve_html_attrs == "on"
             config.cfg.__dict__['llm_from_file'] = llm_from_file == "on"
             config.cfg.__dict__['use_langchain'] = use_langchain == "on"
             config.cfg.__dict__['processor_autosave'] = processor_autosave == "on"

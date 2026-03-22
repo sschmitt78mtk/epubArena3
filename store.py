@@ -6,17 +6,14 @@ from pathlib import Path
 #import json
 import html
 import base64 # Für Einbettung von Image
-#from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 import ebooklib
 from ebooklib import epub
 from errorLog import log
 from jaccard import jaccard_clean
 import config
 from prompts import Promptset
-
-
-if config.cfg.use_markdown:
-    import markdown
+import markdown
     
 class Chunk:
     def __init__(self, source_chaptername: str, chunk_id: int, chunktype: str, content: str, chapter_id = None):
@@ -24,14 +21,61 @@ class Chunk:
         self.chapter_id = chapter_id
         self.chunk_id = chunk_id
         self.content = content
-        self.chunktype = chunktype # text, image, heading, table, raw 
+        self.chunktype = chunktype # text, image, heading, table, raw, structured
         self.headinglevel = ''
         self.imagedata = ''
         self.metadata: list[dict[str, Any]] = []
+        # Felder für HTML-Attributerhalt
+        self.original_html: str = ''  # Originales HTML-Fragment mit allen Attributen
+        self.element_attrs: dict[str, dict[str, str]] = {}  # Mapping: element_id -> {attr: value}
+    
+    def restore_html(self, translated_text: str) -> str:
+        """
+        Setzt den übersetzten Text in die originale HTML‑Struktur ein, behält alle Attribute.
+        Falls kein original_html vorhanden, wird einfaches HTML mit Klasse 'normal' erzeugt.
+        """
+        if not self.original_html:
+            # Fallback: einfacher Paragraph mit Klasse (falls config.cfg.preserve_html_attrs False)
+            return f'<p class="normal">{htmlsafe(translated_text)}</p>'
+        
+        try:
+            soup = BeautifulSoup(self.original_html, 'html.parser')
+            # Finde das erste Text‑Element (z.B. <p>, <span>, <div>) oder das Wurzelelement
+            # Wir nehmen an, dass das originale Fragment genau ein äußeres Element hat.
+            # Wenn mehrere, müssen wir komplexer vorgehen. Für jetzt: erstes Element.
+            elements = list(soup.find_all(recursive=False))
+            if not elements:
+                # Kein äußeres Element? Dann das ganze Fragment als Container
+                container = soup
+            else:
+                container = elements[0]
+            
+            # Ersetze den Textinhalt des Containers mit dem übersetzten Text
+            # Aber behalte alle Unterelemente (z.B. <strong>, <em>) bei? Das ist schwierig.
+            # Einfacher Ansatz: gesamten Inhalt durch übersetzten Text ersetzen (verliert innere Tags).
+            # Besser: Nur Text‑Nodes ersetzen, die keine Unter‑Tags haben.
+            # Für erste Iteration: gesamten Inhalt ersetzen, da LLM nur reinen Text liefert.
+            container.clear()
+            container.append(translated_text)
+            return str(soup)
+        except Exception as e:
+            log.printlog(f"Fehler bei restore_html für Chunk {self.chunk_id}: {e}")
+            # Fallback
+            return f'<p class="normal">{htmlsafe(translated_text)}</p>'
     
     def htmlp(self, do_jaccard_clean = False) -> str: # für epubPublication
         if self.chunktype == 'table' or self.chunktype == 'pre':
             return self.content
+        # Wenn preserve_html_attrs aktiv und original_html vorhanden, geben wir das restaurierte HTML aus.
+        # Allerdings enthält self.content bereits das restaurierte HTML (nach Prozessierung).
+        # Also können wir einfach self.content zurückgeben, wenn es bereits HTML ist.
+        # Wir prüfen, ob das content-Feld HTML-Tags enthält (einfache Heuristik).
+        # Besser: Wenn chunktype 'structured' oder original_html gesetzt ist, geben wir self.content direkt aus.
+        if (config.cfg.preserve_html_attrs and self.original_html) or self.chunktype == 'structured':
+            # self.content sollte bereits das restaurierte HTML sein (mit Attributen).
+            # Sicherstellen, dass es keine unsicheren Zeichen enthält.
+            return htmlsafe(self.content)
+        
         htmlsafecontent = htmlsafe(self.content)
         htmlp = ''
         if self.chunktype == "heading":
