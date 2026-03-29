@@ -67,7 +67,7 @@ class Promptset:
             top_p=data.get('top_p', 0.8),
             maxNewToken=data.get('maxNewToken', 500),
             targetlanguage=data.get('targetlanguage', 'DE'),
-            AIasJudge=data.get('AIasJudge', 'DE')
+            AIasJudge=data.get('AIasJudge', False)
         )
 
 def save_promptsets(promptsets: list[Promptset], filename: str) -> None: # pylint: disable=unused-variable
