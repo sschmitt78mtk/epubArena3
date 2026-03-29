@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
-    <title>Prompts bearbeiten</title>
+    <title>Prompts bearbeiten - CRUD</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='gui3.css') }}">
     <style>
         body {
@@ -15,100 +14,149 @@
 
         h2 {
             margin-top: 0;
+            color: #333;
         }
 
-        .editor-header {
+        .header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 1rem;
         }
 
-        .prompt-controls {
+        .controls {
             display: flex;
             gap: 0.5rem;
         }
 
         button {
             border: none;
-            padding: 0.4rem 0.8rem;
-            background: #2a6edb;
-            color: white;
+            padding: 0.5rem 1rem;
             border-radius: 0.3rem;
             cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
         }
 
-        button.secondary {
+        .btn-primary {
+            background: #2a6edb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1a5ecb;
+        }
+
+        .btn-secondary {
             background: #777;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #666;
+        }
+
+        .btn-danger {
+            background: #c0392b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #a93226;
         }
 
         #status {
             margin: 0.6rem 0;
-            min-height: 1rem;
+            min-height: 1.2rem;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .status-success {
+            color: #27ae60;
+        }
+
+        .status-error {
+            color: #c0392b;
         }
 
         #prompt-list {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
-            margin-top: 1rem;
+            gap: 1rem;
         }
 
         .prompt-card {
             background: white;
             border-radius: 0.5rem;
-            padding: 1rem;
-            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #2a6edb;
         }
 
-        .prompt-card label {
+        .prompt-card-header {
             display: flex;
-            flex-direction: column;
-            font-weight: 600;
-            margin-bottom: 0.4rem;
-            font-size: 0.95rem;
-        }
-
-        .prompt-card input,
-        .prompt-card textarea {
-            margin-top: 0.2rem;
-            padding: 0.4rem;
-            border-radius: 0.25rem;
-            border: 1px solid #bdbdbd;
-            font: inherit;
-        }
-
-        .prompt-card textarea {
-            resize: vertical;
-            min-height: 3rem;
-        }
-
-        .prompt-card-head {
-            display: flex;
-            align-items: center;
             justify-content: space-between;
-            gap: 1rem;
+            align-items: center;
             margin-bottom: 1rem;
             flex-wrap: wrap;
-        }
-
-        .prompt-card-meta {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 0.5rem;
-            width: 100%;
-        }
-
-        .prompt-card-row {
-            display: flex;
             gap: 1rem;
-            flex-wrap: wrap;
-            margin-top: 0.5rem;
         }
 
-        .delete-row {
-            background: #c0392b;
+        .prompt-id {
+            font-weight: bold;
+            color: #2a6edb;
+            font-size: 1.1rem;
+        }
+
+        .prompt-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 0.25rem;
+            font: inherit;
+            font-size: 0.9rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-group.checkbox {
+            flex-direction: row;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group.checkbox label {
+            margin-bottom: 0;
         }
 
         .nav-link {
@@ -116,177 +164,273 @@
             text-decoration: none;
             color: #2a6edb;
         }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #777;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #777;
+            background: white;
+            border-radius: 0.5rem;
+            border: 2px dashed #ddd;
+        }
     </style>
-    <script>
-        window.initialPrompts = {{ prompts | tojson }};
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const promptList = document.getElementById('prompt-list');
-            const status = document.getElementById('status');
-            const initialPrompts = window.initialPrompts ?? [];
-
-            function createPromptRow(prompt = {}) {
-                const row = document.createElement('div');
-                row.className = 'prompt-card';
-                row.innerHTML = `
-                    <div class="prompt-card-head">
-                        <div class="prompt-card-meta">
-                            <label>PromptID
-                                <input type="number" data-field="PromptID" min="0" value="1">
-                            </label>
-                            <label>Targetlanguage
-                                <input type="text" data-field="targetlanguage" value="1">
-                            </label>
-                            <label>Temperature
-                                <input type="number" step="0.01" data-field="temperature" min="0" value="1">
-                            </label>
-                            <label>Top p
-                                <input type="number" step="0.01" data-field="top_p" min="0" max="1" value="1">
-                            </label>
-                            <label>maxNewToken
-                                <input type="number" data-field="maxNewToken" min="0" value="1">
-                            </label>
-                        </div>
-                        <button type="button" class="delete-row secondary">Entfernen</button>
-                    </div>
-                    <label>System Prompt
-                        <textarea data-field="system_message" rows="2" value="1"></textarea>
-                    </label>
-                    <label>Pre Prompt
-                        <textarea data-field="prePrompt" rows="2" value="1"></textarea>
-                    </label>
-                    <label>Post Prompt
-                        <textarea data-field="postPrompt" rows="2" value="1"></textarea>
-                    </label>
-                    <label>Info
-                        <textarea data-field="infostr" rows="2" value="1"></textarea>
-                    </label>
-                    <div class="prompt-card-row">
-                        <label><input type="checkbox" data-field="allowLongAnswer" value="1"> Allow Long Answer</label>
-                        <label><input type="checkbox" data-field="AIasJudge" value="1"> AI as Judge</label>
-                    </div>
-                `;
-                const setField = (field, value) => {
-                    const element = row.querySelector(`[data-field="${field}"]`);
-                    if (!element) {
-                        return;
-                    }
-                    if (element.type === 'checkbox') {
-                        element.checked = Boolean(value);
-                    } else {
-                        element.value = value ?? '';
-                    }
-                };
-
-                setField('PromptID', prompt.PromptID ?? '');
-                setField('targetlanguage', prompt.targetlanguage ?? 'DE');
-                setField('temperature', prompt.temperature ?? 0.2);
-                setField('top_p', prompt.top_p ?? 0.8);
-                setField('maxNewToken', prompt.maxNewToken ?? 500);
-                setField('system_message', prompt.system_message ?? '');
-                setField('prePrompt', prompt.prePrompt ?? '');
-                setField('postPrompt', prompt.postPrompt ?? '');
-                setField('infostr', prompt.infostr ?? '');
-                setField('allowLongAnswer', prompt.allowLongAnswer ?? true);
-                setField('AIasJudge', prompt.AIasJudge ?? false);
-
-                row.querySelector('.delete-row').addEventListener('click', () => {
-                    row.remove();
-                });
-
-                return row;
-            }
-
-            function renderPrompts(prompts) {
-                promptList.innerHTML = '';
-                (prompts ?? []).forEach(prompt => promptList.appendChild(createPromptRow(prompt)));
-            }
-
-            function getNextPromptID() {
-                const currentIds = Array.from(document.querySelectorAll('[data-field="PromptID"]'))
-                    .map(input => Number(input.value))
-                    .filter(Number.isFinite);
-                return currentIds.length ? Math.max(...currentIds) + 1 : 0;
-            }
-
-            function collectPrompts() {
-                const rows = document.querySelectorAll('.prompt-card');
-                return Array.from(rows).map(row => {
-                    const getField = field => row.querySelector(`[data-field="${field}"]`);
-                    const parseNumber = value => {
-                        const num = Number(value);
-                        return Number.isFinite(num) ? num : 0;
-                    };
-                    return {
-                        PromptID: parseNumber(getField('PromptID')?.value),
-                        system_message: getField('system_message')?.value.trim() ?? '',
-                        prePrompt: getField('prePrompt')?.value ?? '',
-                        postPrompt: getField('postPrompt')?.value ?? '',
-                        infostr: getField('infostr')?.value ?? '',
-                        allowLongAnswer: getField('allowLongAnswer')?.checked ?? false,
-                        temperature: parseNumber(getField('temperature')?.value),
-                        top_p: parseNumber(getField('top_p')?.value),
-                        maxNewToken: parseNumber(getField('maxNewToken')?.value),
-                        targetlanguage: getField('targetlanguage')?.value.trim() ?? '',
-                        AIasJudge: getField('AIasJudge')?.checked ?? false
-                    };
-                });
-            }
-
-            document.getElementById('add-prompt').addEventListener('click', () => {
-                const newPrompt = {
-                    PromptID: getNextPromptID(),
-                    allowLongAnswer: true,
-                    temperature: 0.2,
-                    top_p: 0.8,
-                    maxNewToken: 500,
-                    targetlanguage: 'DE'
-                };
-                promptList.appendChild(createPromptRow(newPrompt));
-            });
-
-            document.getElementById('save-prompts').addEventListener('click', async () => {
-                const payload = collectPrompts();
-                status.textContent = 'Speichere...';
-                try {
-                    const response = await fetch('/save_prompts2', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    const result = await response.json();
-                    if (!response.ok || !result.success) {
-                        throw new Error(result.message || 'Speichern fehlgeschlagen');
-                    }
-                    renderPrompts(result.prompts);
-                    status.textContent = 'Prompts gespeichert';
-                } catch (error) {
-                    console.error(error);
-                    status.textContent = `Fehler: ${error.message}`;
-                }
-            });
-
-            renderPrompts(initialPrompts);
-        });
-    </script>
 </head>
-
 <body>
-    <div class="editor-header">
+    <div class="header">
         <div>
-            <h2>Prompts bearbeiten</h2>
+            <h2>Prompts bearbeiten (CRUD)</h2>
             <a class="nav-link" href="{{ url_for('index') }}">&larr; zurück zur Hauptseite</a>
         </div>
-        <div class="prompt-controls">
-            <button id="add-prompt">Neues Prompt</button>
-            <button id="save-prompts">Speichern</button>
+        <div class="controls">
+            <button class="btn-primary" id="add-prompt">Neues Prompt</button>
         </div>
     </div>
-    <div id="status"></div>
-    <div id="prompt-list"></div>
-</body>
 
+    <div id="status"></div>
+
+    <div id="prompt-list">
+        <div class="loading">Lade Prompts...</div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/prompts';
+        let prompts = [];
+
+        // DOM Elements
+        const promptList = document.getElementById('prompt-list');
+        const status = document.getElementById('status');
+        const addButton = document.getElementById('add-prompt');
+
+        // Status display
+        function showStatus(message, isError = false) {
+            status.textContent = message;
+            status.className = isError ? 'status-error' : 'status-success';
+            if (message) {
+                setTimeout(() => {
+                    status.textContent = '';
+                    status.className = '';
+                }, 3000);
+            }
+        }
+
+        // Fetch all prompts
+        async function loadPrompts() {
+            try {
+                promptList.innerHTML = '<div class="loading">Lade Prompts...</div>';
+                const response = await fetch(API_BASE);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                prompts = await response.json();
+                renderPrompts();
+            } catch (error) {
+                promptList.innerHTML = `<div class="empty-state">Fehler beim Laden: ${error.message}</div>`;
+                console.error('Error loading prompts:', error);
+            }
+        }
+
+        // Create prompt card HTML
+        function createPromptCard(prompt) {
+            const card = document.createElement('div');
+            card.className = 'prompt-card';
+            card.dataset.id = prompt.PromptID;
+            
+            card.innerHTML = `
+                <div class="prompt-card-header">
+                    <div class="prompt-id">Prompt ID: ${prompt.PromptID}</div>
+                    <div class="prompt-actions">
+                        <button class="btn-primary save-btn" data-id="${prompt.PromptID}">Speichern</button>
+                        <button class="btn-danger delete-btn" data-id="${prompt.PromptID}">Löschen</button>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>System Prompt *</label>
+                        <textarea class="system-message" rows="2" required>${escapeHtml(prompt.system_message)}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Pre Prompt</label>
+                        <textarea class="pre-prompt" rows="2">${escapeHtml(prompt.prePrompt)}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Post Prompt</label>
+                        <textarea class="post-prompt" rows="2">${escapeHtml(prompt.postPrompt)}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Info</label>
+                        <textarea class="info" rows="2">${escapeHtml(prompt.infostr)}</textarea>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Target Language</label>
+                        <input type="text" class="target-language" value="${escapeHtml(prompt.targetlanguage)}">
+                    </div>
+                    <div class="form-group">
+                        <label>Temperature</label>
+                        <input type="number" step="0.01" min="0" class="temperature" value="${prompt.temperature}">
+                    </div>
+                    <div class="form-group">
+                        <label>Top p</label>
+                        <input type="number" step="0.01" min="0" max="1" class="top-p" value="${prompt.top_p}">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Tokens</label>
+                        <input type="number" min="0" class="max-tokens" value="${prompt.maxNewToken}">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group checkbox">
+                        <input type="checkbox" class="allow-long-answer" ${prompt.allowLongAnswer ? 'checked' : ''}>
+                        <label>Allow Long Answer</label>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" class="ai-judge" ${prompt.AIasJudge ? 'checked' : ''}>
+                        <label>AI as Judge</label>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Render all prompts
+        function renderPrompts() {
+            if (prompts.length === 0) {
+                promptList.innerHTML = '<div class="empty-state">Keine Prompts vorhanden. Klicke auf "Neues Prompt" um einen zu erstellen.</div>';
+                return;
+            }
+            
+            promptList.innerHTML = '';
+            prompts.forEach(prompt => {
+                const card = createPromptCard(prompt);
+                promptList.appendChild(card);
+                
+                // Add event listeners
+                card.querySelector('.save-btn').addEventListener('click', () => savePrompt(prompt.PromptID));
+                card.querySelector('.delete-btn').addEventListener('click', () => deletePrompt(prompt.PromptID));
+            });
+        }
+
+        // Create new prompt
+        async function createNewPrompt() {
+            const defaultPrompt = {
+                PromptID: 0, // will be replaced by server
+                system_message: '',
+                prePrompt: '',
+                postPrompt: '',
+                infostr: '',
+                targetlanguage: 'DE',
+                temperature: 0.2,
+                top_p: 0.8,
+                maxNewToken: 500,
+                allowLongAnswer: true,
+                AIasJudge: false
+            };
+            
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(defaultPrompt)
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const newPrompt = await response.json();
+                
+                showStatus('Neues Prompt erstellt');
+                await loadPrompts(); // Reload list
+                
+            } catch (error) {
+                showStatus(`Fehler beim Erstellen: ${error.message}`, true);
+                console.error('Error creating prompt:', error);
+            }
+        }
+
+        // Update existing prompt
+        async function savePrompt(promptId) {
+            const card = document.querySelector(`[data-id="${promptId}"]`);
+            if (!card) return;
+            
+            const promptData = {
+                system_message: card.querySelector('.system-message').value.trim(),
+                prePrompt: card.querySelector('.pre-prompt').value.trim(),
+                postPrompt: card.querySelector('.post-prompt').value.trim(),
+                infostr: card.querySelector('.info').value.trim(),
+                targetlanguage: card.querySelector('.target-language').value.trim() || 'DE',
+                temperature: parseFloat(card.querySelector('.temperature').value) || 0.2,
+                top_p: parseFloat(card.querySelector('.top-p').value) || 0.8,
+                maxNewToken: parseInt(card.querySelector('.max-tokens').value) || 500,
+                allowLongAnswer: card.querySelector('.allow-long-answer').checked,
+                AIasJudge: card.querySelector('.ai-judge').checked
+            };
+            
+            // Validation
+            if (!promptData.system_message) {
+                showStatus('System Prompt ist erforderlich', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/${promptId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(promptData)
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                showStatus('Prompt gespeichert');
+                await loadPrompts(); // Reload to get fresh data
+                
+            } catch (error) {
+                showStatus(`Fehler beim Speichern: ${error.message}`, true);
+                console.error('Error saving prompt:', error);
+            }
+        }
+
+        // Delete prompt
+        async function deletePrompt(promptId) {
+            if (!confirm(`Prompt ${promptId} wirklich löschen?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/${promptId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                showStatus('Prompt gelöscht');
+                await loadPrompts(); // Reload list
+                
+            } catch (error) {
+                showStatus(`Fehler beim Löschen: ${error.message}`, true);
+                console.error('Error deleting prompt:', error);
+            }
+        }
+
+        // Simple HTML escaping
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Event Listeners
+        addButton.addEventListener('click', createNewPrompt);
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadPrompts);
+    </script>
+</body>
 </html>
