@@ -24,11 +24,14 @@ import epubArena3
 import store
 from prompts import Promptset, load_promptsets, save_promptsets
 from prompt_api import router as prompt_router
+from api_configs import router as api_configs_router
 
 app = FastAPI(title="epubArena 3 FastAPI")
 
 # Include prompt API router
 app.include_router(prompt_router)
+# Include API configs router
+app.include_router(api_configs_router)
 
 # Base directory of this module (ensures relative paths work even when uvicorn
 # is started from elsewhere).
@@ -52,6 +55,7 @@ def url_for(endpoint: str, **kwargs):
     endpoint_map = {
         'uploadfile': '/uploadfile',
         'edit_prompts': '/editprompts',
+        'edit_api_configs': '/editapiconfigs',
         'index': '/'
     }
     return endpoint_map.get(endpoint, f'/{endpoint}')
@@ -272,6 +276,14 @@ async def edit_prompts(request: Request):
     return templates.TemplateResponse("editprompts.html", {
         "request": request,
         "prompts": []
+    })
+
+@app.get("/editapiconfigs")
+async def edit_api_configs(request: Request):
+    # Pass empty configs - frontend will fetch via API
+    return templates.TemplateResponse("editapiconfigs.html", {
+        "request": request,
+        "configs": []
     })
 
 @app.get("/list_epub_files")

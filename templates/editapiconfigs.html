@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>API Konfiguration bearbeiten - CRUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='gui3.css') }}">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            margin: 0;
+            padding: 1.5rem;
+            background: #f7f7f7;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        button {
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn-primary {
+            background: #2a6edb;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1a5ecb;
+        }
+
+        .btn-secondary {
+            background: #777;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #666;
+        }
+
+        .btn-danger {
+            background: #c0392b;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #a93226;
+        }
+
+        #status {
+            margin: 0.6rem 0;
+            min-height: 1.2rem;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .status-success {
+            color: #27ae60;
+        }
+
+        .status-error {
+            color: #c0392b;
+        }
+
+        #config-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .config-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #2a6edb;
+        }
+
+        .config-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .config-id {
+            font-weight: bold;
+            color: #2a6edb;
+            font-size: 1.1rem;
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 0.25rem;
+            font: inherit;
+            font-size: 0.9rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-group input[type="password"] {
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+
+        .api-key-hint {
+            font-size: 0.8rem;
+            color: #777;
+            margin-top: 0.25rem;
+        }
+
+        .password-toggle-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-toggle-container input {
+            flex: 1;
+            padding-right: 2.5rem;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-toggle:hover {
+            color: #333;
+        }
+
+        .password-toggle:focus {
+            outline: none;
+        }
+
+        .nav-link {
+            font-weight: 600;
+            text-decoration: none;
+            color: #2a6edb;
+        }
+
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #777;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #777;
+            background: white;
+            border-radius: 0.5rem;
+            border: 2px dashed #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h2>API Konfiguration bearbeiten (CRUD)</h2>
+            <a class="nav-link" href="{{ url_for('index') }}">&larr; zurück zur Hauptseite</a>
+            <span style="margin-left: 1rem;">|</span>
+            <a class="nav-link" href="{{ url_for('edit_prompts') }}">Prompts bearbeiten</a>
+        </div>
+        <div class="controls">
+            <button class="btn-primary" id="add-config">Neue API Konfiguration</button>
+        </div>
+    </div>
+
+    <div id="status"></div>
+
+    <div id="config-list">
+        <div class="loading">Lade API Konfigurationen...</div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/configs';
+        let configs = [];
+
+        // DOM Elements
+        const configList = document.getElementById('config-list');
+        const status = document.getElementById('status');
+        const addButton = document.getElementById('add-config');
+
+        // Status display
+        function showStatus(message, isError = false) {
+            status.textContent = message;
+            status.className = isError ? 'status-error' : 'status-success';
+            if (message) {
+                setTimeout(() => {
+                    status.textContent = '';
+                    status.className = '';
+                }, 3000);
+            }
+        }
+
+        // Check if API key is masked (shows dots)
+        function isMaskedKey(key) {
+            return key && key.startsWith('••••••');
+        }
+
+        // Create placeholder for masked key
+        function getApiKeyPlaceholder(key) {
+            if (!key || isMaskedKey(key)) {
+                return ''; // Empty for new or masked keys
+            }
+            return key; // Show actual key when editing
+        }
+
+        // Toggle password visibility
+        function togglePasswordVisibility(button) {
+            const container = button.closest('.password-toggle-container');
+            const input = container.querySelector('.api-key');
+            const isPassword = input.type === 'password';
+            
+            // Toggle input type
+            input.type = isPassword ? 'text' : 'password';
+            
+            // Update button text/icon
+            if (isPassword) {
+                button.innerHTML = '🔒';
+                button.title = 'Passwort verbergen';
+            } else {
+                button.innerHTML = '👁️';
+                button.title = 'Passwort anzeigen';
+            }
+        }
+
+        // Show password on focus, hide on blur
+        function setupPasswordFieldEvents(input) {
+            input.addEventListener('focus', () => {
+                input.type = 'text';
+            });
+            
+            input.addEventListener('blur', () => {
+                input.type = 'password';
+            });
+        }
+
+        // Fetch all configs
+        async function loadConfigs() {
+            try {
+                configList.innerHTML = '<div class="loading">Lade API Konfigurationen...</div>';
+                const response = await fetch(API_BASE);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                configs = await response.json();
+                renderConfigs();
+            } catch (error) {
+                configList.innerHTML = `<div class="empty-state">Fehler beim Laden: ${error.message}</div>`;
+                console.error('Error loading configs:', error);
+            }
+        }
+
+        // Create config card HTML
+        function createConfigCard(config) {
+            const card = document.createElement('div');
+            card.className = 'config-card';
+            card.dataset.id = config.id;
+            
+            const apiKeyPlaceholder = getApiKeyPlaceholder(config.OPENAI_API_KEY);
+            const isMasked = isMaskedKey(config.OPENAI_API_KEY);
+            
+            card.innerHTML = `
+                <div class="config-card-header">
+                    <div class="config-id">Konfiguration ID: ${config.id} - ${escapeHtml(config.name)}</div>
+                    <div class="config-actions">
+                        <button class="btn-primary save-btn" data-id="${config.id}">Speichern</button>
+                        <button class="btn-danger delete-btn" data-id="${config.id}">Löschen</button>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Name *</label>
+                        <input type="text" class="config-name" value="${escapeHtml(config.name)}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>API Basis URL *</label>
+                        <input type="text" class="api-base" value="${escapeHtml(config.OPENAI_API_BASE)}" required placeholder="https://api.openai.com/v1">
+                    </div>
+                    <div class="form-group">
+                        <label>API Key * ${isMasked ? '(maskiert)' : ''}</label>
+                        <div class="password-toggle-container">
+                            <input type="password" class="api-key" value="${escapeHtml(apiKeyPlaceholder)}" ${isMasked ? 'placeholder="•••••• (bestehendes Passwort)"' : 'placeholder="sk-..."'} required>
+                            <button type="button" class="password-toggle" data-config-id="${config.id}" title="Passwort anzeigen/verbergen">
+                                👁️
+                            </button>
+                        </div>
+                        <div class="api-key-hint">${isMasked ? 'Lasse das Feld leer um das bestehende Passwort zu behalten' : 'Trage neuen API Key ein'}</div>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>API Model Name *</label>
+                        <input type="text" class="api-modelname" value="${escapeHtml(config.OPEN_API_MODELNAME)}" required placeholder="gpt-4">
+                    </div>
+                    <div class="form-group">
+                        <label>Anzeigename *</label>
+                        <input type="text" class="display-name" value="${escapeHtml(config.modelname)}" required placeholder="GPT-4">
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+
+        // Render all configs
+        function renderConfigs() {
+            if (configs.length === 0) {
+                configList.innerHTML = '<div class="empty-state">Keine API Konfigurationen vorhanden. Klicke auf "Neue API Konfiguration" um eine zu erstellen.</div>';
+                return;
+            }
+            
+            configList.innerHTML = '';
+            configs.forEach(config => {
+                const card = createConfigCard(config);
+                configList.appendChild(card);
+                
+                // Add event listeners
+                card.querySelector('.save-btn').addEventListener('click', () => saveConfig(config.id));
+                card.querySelector('.delete-btn').addEventListener('click', () => deleteConfig(config.id));
+                
+                // Add password toggle event listener
+                const toggleButton = card.querySelector('.password-toggle');
+                if (toggleButton) {
+                    toggleButton.addEventListener('click', () => togglePasswordVisibility(toggleButton));
+                }
+                
+                // Add click-to-reveal on focus for password field
+                const apiKeyInput = card.querySelector('.api-key');
+                if (apiKeyInput) {
+                    setupPasswordFieldEvents(apiKeyInput);
+                }
+            });
+        }
+
+        // Create new config
+        async function createNewConfig() {
+            const defaultConfig = {
+                name: 'Neue API Konfiguration',
+                OPENAI_API_BASE: 'https://api.openai.com/v1',
+                OPENAI_API_KEY: '',
+                OPEN_API_MODELNAME: 'gpt-4',
+                modelname: 'GPT-4'
+            };
+            
+            try {
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(defaultConfig)
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const newConfig = await response.json();
+                
+                showStatus('Neue API Konfiguration erstellt');
+                await loadConfigs(); // Reload list
+                
+            } catch (error) {
+                showStatus(`Fehler beim Erstellen: ${error.message}`, true);
+                console.error('Error creating config:', error);
+            }
+        }
+
+        // Update existing config
+        async function saveConfig(configId) {
+            const card = document.querySelector(`[data-id="${configId}"]`);
+            if (!card) return;
+            
+            const apiKeyValue = card.querySelector('.api-key').value;
+            const isMasked = isMaskedKey(configs.find(c => c.id === configId)?.OPENAI_API_KEY || '');
+            
+            const configData = {
+                name: card.querySelector('.config-name').value.trim(),
+                OPENAI_API_BASE: card.querySelector('.api-base').value.trim(),
+                OPENAI_API_KEY: apiKeyValue || (isMasked ? '••••••' : ''), // Send masked string if empty (keep existing)
+                OPEN_API_MODELNAME: card.querySelector('.api-modelname').value.trim(),
+                modelname: card.querySelector('.display-name').value.trim()
+            };
+            
+            // Validation
+            if (!configData.name || !configData.OPENAI_API_BASE || !configData.OPEN_API_MODELNAME || !configData.modelname) {
+                showStatus('Alle Felder mit * sind erforderlich', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/${configId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configData)
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                showStatus('API Konfiguration gespeichert');
+                await loadConfigs(); // Reload to get fresh data
+                
+            } catch (error) {
+                showStatus(`Fehler beim Speichern: ${error.message}`, true);
+                console.error('Error saving config:', error);
+            }
+        }
+
+        // Delete config
+        async function deleteConfig(configId) {
+            if (!confirm(`API Konfiguration ${configId} wirklich löschen?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/${configId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                showStatus('API Konfiguration gelöscht');
+                await loadConfigs(); // Reload list
+                
+            } catch (error) {
+                showStatus(`Fehler beim Löschen: ${error.message}`, true);
+                console.error('Error deleting config:', error);
+            }
+        }
+
+        // Simple HTML escaping
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Event Listeners
+        addButton.addEventListener('click', createNewConfig);
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', loadConfigs);
+    </script>
+</body>
+</html>
