@@ -2,6 +2,11 @@ td {
     width: 60ch;
 } 
 
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
 img {
     max-height: 50vh;
     max-width: 80vw;
