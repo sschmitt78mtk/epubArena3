@@ -13,10 +13,8 @@ from errorLog import log
 from jaccard import jaccard_clean
 import config
 from prompts import Promptset
+import markdown
 
-
-if config.cfg.use_markdown:
-    import markdown
     
 class Chunk:
     def __init__(self, source_chaptername: str, chunk_id: int, chunktype: str, content: str, chapter_id = None):
@@ -270,7 +268,9 @@ class Publication: # pylint: disable=unused-variable
                 html_str += f'<tr class="etable"><th colspan="{numcolumns}"><pre>{chunk_item.content}</pre></th></tr>\n'
             else:
                 # spalte 1 source, spalte 2 translation
-                html_str += f'<tr><td class="translation">{htmlsafecontent}<br><cs class="chunkid">{chunk_item.chunk_id}</cs></td>'
+                content_source = htmlsafecontent
+                if config.cfg.use_markdown: content_source = markdown.markdown(content_source)
+                html_str += f'<tr><td class="translation">{content_source}<br><cs class="chunkid">{chunk_item.chunk_id}</cs></td>'
                 for tproject in translation_projects[1:]:# erstes überspringen 
                     content2 = htmlsafe(self._content_by_chunk_id(chunk_item.chunk_id,tproject))
                     if self.jaccard_clean: 
