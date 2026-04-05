@@ -99,6 +99,7 @@ class Chunker: # pylint: disable=unused-variable
                     r'(?P<li><li[^>]*>.*?</li>)|'
                     r'(?P<q><q[^>]*>.*?</q>)|'
                     r'(?P<dd><dd[^>]*>.*?</dd>)|'
+                    r'(?P<dl><dl[^>]*>.*?</dl>)|'
                     r'(?P<dt><dt[^>]*>.*?</dt>)',
                     re.DOTALL | re.IGNORECASE
                 )
@@ -167,6 +168,10 @@ class Chunker: # pylint: disable=unused-variable
                         paracount +=1
                     elif match.group('dd'):
                         text = re.sub(r'<.*?>', '', match.group('dd')).strip()
+                        chunktext += '\n' + text
+                        paracount +=1
+                    elif match.group('dl'):
+                        text = re.sub(r'<.*?>', '', match.group('dl')).strip()
                         chunktext += '\n' + text
                         paracount +=1
                     elif match.group('dt'):
