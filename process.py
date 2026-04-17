@@ -32,7 +32,7 @@ class Processor:
         self.autosaveInterval = config.cfg.processor_autosave_interval# alle 10 chunks speichern
     
     async def _do_async_impl(self, start_at_chunkID=0, stop_at_chunkID=None) -> None:
-        """Async implementation with parallel processing (max 4 concurrent calls)"""
+        """Async implementation with parallel processing"""
         log.printlog(f'processing {self.processedTranslation.modelname}')
         if not self.prompt:  # Ohne Prompt nur kopieren
             log.error('process None-Type Prompt? - skip)')
@@ -73,8 +73,8 @@ class Processor:
             if chunkitem.chunktype not in self.sourcetranslation.chunk_type_no_process:
                 chunks_to_process.append((chunkitem, nextprocessedchunk))
         
-        # Process chunks in parallel with semaphore limiting to 4 concurrent calls
-        semaphore = asyncio.Semaphore(4)
+        # Process chunks in parallel with semaphore limiting to concurrent calls
+        semaphore = asyncio.Semaphore(config.cfg.max_concurrent_calls)
         autosaveno = 0
         
         async def process_chunk(chunkitem: Chunk, nextprocessedchunk: Chunk) -> bool:
@@ -229,8 +229,8 @@ class ProcessorMultiSource(Processor): # pylint: disable=unused-variable
             if chunkitem.chunktype not in self.sourcetranslations[0].chunk_type_no_process:
                 chunks_to_process.append((chunkitem, nextprocessedchunk))
         
-        # Process chunks in parallel with semaphore limiting to 4 concurrent calls
-        semaphore = asyncio.Semaphore(config.MAX_CONCURRENT_CALLS)
+        # Process chunks in parallel with semaphore limiting to concurrent calls
+        semaphore = asyncio.Semaphore(config.cfg.max_concurrent_calls)
         autosaveno = 0
         
         async def process_chunk(chunkitem: Chunk, nextprocessedchunk: Chunk) -> bool:

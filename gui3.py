@@ -153,6 +153,7 @@ async def index_post(
     promptno_1: Optional[str] = Form(None),
     promptno_2: Optional[str] = Form(None),
     api_timeout: Optional[str] = Form(None),
+    max_concurrent_calls: Optional[str] = Form(None),
     modeltodelete: Optional[str] = Form(None),
 ):
     Errors = ''
@@ -199,6 +200,8 @@ async def index_post(
             
             if api_timeout:
                 config.cfg.api_timeout = float(api_timeout) if api_timeout != "" else 600.0
+            if max_concurrent_calls:
+                config.cfg.max_concurrent_calls = int(max_concurrent_calls) if max_concurrent_calls != "" else 4
 
             if not config.cfg.batch_jobs and not config.cfg.gePubFilename:
                 Errors = '\nkein ePub ausgewählt (und kein batchJobs angehakt)\n'
