@@ -152,6 +152,7 @@ async def index_post(
     chunker_maxwords: Optional[str] = Form(None),
     promptno_1: Optional[str] = Form(None),
     promptno_2: Optional[str] = Form(None),
+    api_timeout: Optional[str] = Form(None),
     modeltodelete: Optional[str] = Form(None),
 ):
     Errors = ''
@@ -196,6 +197,9 @@ async def index_post(
             if promptno_2:
                 config.cfg.prompt2_no = int(promptno_2) if promptno_2 != "" else 0
             
+            if api_timeout:
+                config.cfg.api_timeout = float(api_timeout) if api_timeout != "" else 600.0
+
             if not config.cfg.batch_jobs and not config.cfg.gePubFilename:
                 Errors = '\nkein ePub ausgewählt (und kein batchJobs angehakt)\n'
             if config.cfg.gePubFilename and not config.cfg.gePubFilename.endswith('.epub'):

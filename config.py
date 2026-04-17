@@ -105,6 +105,7 @@ class Configuration:
         self.prompt2 = get_promptsetByID(all_promptset, 1)
         self.processor_autosave = True
         self.processor_autosave_interval = 10
+        self.api_timeout = 600.0
     
     def update_main(self) -> None:
         self.prompt1 = get_promptsetByID(all_promptset, self.prompt1_no)
