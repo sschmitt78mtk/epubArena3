@@ -13,7 +13,9 @@ import config
     
 class Llmcaller: # pylint: disable=unused-variable
     def __init__(self, model = config.cfg.current_open_api_modelname, api_base_url = config.cfg.current_openai_api_base,
-                 api_key = config.cfg.current_openai_api_key, max_tokens = 500, simulate = False):
+                 api_key = config.cfg.current_openai_api_key, max_tokens = 500, simulate = False, timeout = None):
+        if timeout is None:
+            timeout = getattr(config.cfg, 'api_timeout', 600.0)
         self.max_tokens = max_tokens
         self.seed = 10
         self.mode = 'instruct'
@@ -29,11 +31,13 @@ class Llmcaller: # pylint: disable=unused-variable
         self.simulate = simulate
         self.local_llm = OpenAI(
                     base_url=self.api_base_url,
-                    api_key=self.api_key
+                    api_key=self.api_key,
+                    timeout=timeout
                 )
         self.async_llm = AsyncOpenAI(
                     base_url=self.api_base_url,
-                    api_key=self.api_key
+                    api_key=self.api_key,
+                    timeout=timeout
                 )
         if config.cfg.llm_from_file:
             model_path_str = config.PATH_CFG / self.model
@@ -59,14 +63,14 @@ class Llmcaller: # pylint: disable=unused-variable
             response = self.local_llm.chat.completions.create(
                 model=self.model,
                 messages=[
-                            {"role": "system", "content": self.system_message},
-                            {"role": "user", "content": instructtext}
+                            {"role": "system", "content": activepromptset.system_message},
+                            {"role": "user", "content": requesttext}
                             ],
                 stream=False,
                 seed = self.seed,
-                temperature = self.temperature,
-                top_p = self.top_p, 
-                max_tokens = max_tokenoverride if max_tokenoverride > 0 else self.max_tokens # allow override for heading
+                temperature = activepromptset.temperature,
+                top_p = activepromptset.top_p, 
+                max_tokens = max_tokenoverride if max_tokenoverride > 0 else activepromptset.maxNewToken
                 )
             answer = response.choices[0].message.content
             return answer
@@ -92,14 +96,14 @@ class Llmcaller: # pylint: disable=unused-variable
             response = await self.async_llm.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": self.system_message},
-                    {"role": "user", "content": instructtext}
+                    {"role": "system", "content": activepromptset.system_message},
+                    {"role": "user", "content": requesttext}
                 ],
                 stream=False,
                 seed=self.seed,
-                temperature=self.temperature,
-                top_p=self.top_p,
-                max_tokens=max_tokenoverride if max_tokenoverride > 0 else self.max_tokens
+                temperature=activepromptset.temperature,
+                top_p=activepromptset.top_p,
+                max_tokens=max_tokenoverride if max_tokenoverride > 0 else activepromptset.maxNewToken
             )
             answer = response.choices[0].message.content
             return answer
