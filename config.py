@@ -79,7 +79,7 @@ else:
 class Configuration:
     def __init__(self):
         self.gePubFilename = "deep1.epub"
-        self.current_openai_api_base = LOCAL_OPEN_API_MODELNAME
+        self.current_openai_api_base = LOCAL_OPENAI_API_BASE
         self.current_openai_api_key = LOCAL_OPENAI_API_KEY
         self.current_open_api_modelname = LOCAL_OPEN_API_MODELNAME
         self.modelname = "occiglot-Q8"
