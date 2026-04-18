@@ -4,8 +4,13 @@ services:
     image: epubarena3:latest
     container_name: epubarena3
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # makes host reachable as host.docker.internal (Linux)
     environment:
       DATA_DIR: /data
+      # Point local LLM calls to the host machine instead of the container loopback.
+      # Adjust the port if your LM Studio / local LLM server uses a different one.
+      LOCAL_LLM_BASE_URL: "http://host.docker.internal:5005/v1"
     volumes:
       - ./data:/data # docker compose --project-directory /home/userxyz/epubarenadata
     ports:
