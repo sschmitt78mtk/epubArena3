@@ -1,0 +1,6 @@
+# Cline Rules for epubArena3
+
+1. OS: Ubuntu 24.04 (path has Win11D - ignore)
+2. Activate .venv before installing packages or running code
+3. Ask before adding new functionality
+4. Place test files in a tests/ subfolder
