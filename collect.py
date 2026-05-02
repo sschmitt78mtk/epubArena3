@@ -86,6 +86,7 @@ class Chunker: # pylint: disable=unused-variable
             #if debugmode: log.printlog(str(inputchunks))
             paracount = 0
             chunktext = ''
+            sourcecode_text = ''
             last_source_chaptername = inputchunks[0].source_chaptername
             last_chapter_id = inputchunks[0].chapter_id
             chunkitem: Chunk # typehint     
@@ -105,6 +106,11 @@ class Chunker: # pylint: disable=unused-variable
                     re.DOTALL | re.IGNORECASE
                 )
                 for match in tag_regex.finditer(chunkitem.content):
+                    # Wenn kein source-code und source-code-Akkumulator nicht leer, diesen zuerst ausgeben
+                    if not match.group('sourcecode') and sourcecode_text != '':
+                        outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'table', sourcecode_text, last_chapter_id))
+                        self.currentChunkID += 1
+                        sourcecode_text = ''
                     if match.group('table'):
                         if chunktext != '': # chunkitem beenden, bisher gesammelten Text packen
                             outputchunks.append(Chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapter_id))
@@ -154,8 +160,10 @@ class Chunker: # pylint: disable=unused-variable
                             self.currentChunkID +=1
                             chunktext = ''
                             paracount = 0
-                        outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'table', match.group('sourcecode'), last_chapter_id))
-                        self.currentChunkID += 1
+                        # Aufeinanderfolgende source-code-Absätze sammeln
+                        if sourcecode_text != '':
+                            sourcecode_text += '\n'
+                        sourcecode_text += match.group('sourcecode')
                     elif match.group('para'):
                         if chunktext != '': chunktext += '\n'
                         paracount +=1
@@ -188,6 +196,11 @@ class Chunker: # pylint: disable=unused-variable
                         chunktext += '\n' + text
                         paracount +=1                        
                         
+                # Restlichen source-code-Block ausgeben
+                if sourcecode_text != '':
+                    outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'table', sourcecode_text, last_chapter_id))
+                    self.currentChunkID += 1
+                    sourcecode_text = ''
                 last_source_chaptername = chunkitem.source_chaptername
                 last_chapter_id = chunkitem.chapter_id    
             if chunktext != '': # letztes <p> im Kapitel aufnehmen
