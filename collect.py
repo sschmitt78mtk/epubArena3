@@ -95,6 +95,7 @@ class Chunker: # pylint: disable=unused-variable
                     r'(?P<pre><pre.*?>.*?</pre>)|'
                     r'(?P<img><img\s+[^>]*src="([^"]+)"[^>]*>)|'
                     r'(?P<heading><h[1-6][^>]*>.*?</h[1-6]>)|'
+                    r'(?P<sourcecode><p\s+class="source-code"[^>]*>.*?</p>)|'
                     r'(?P<para><p[^>]*>.*?</p>)|'
                     r'(?P<li><li[^>]*>.*?</li>)|'
                     r'(?P<q><q[^>]*>.*?</q>)|'
@@ -146,6 +147,14 @@ class Chunker: # pylint: disable=unused-variable
                         outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'heading', text, last_chapter_id))
                         if heading_level:
                             outputchunks[-1].headinglevel = heading_level
+                        self.currentChunkID += 1
+                    elif match.group('sourcecode'):
+                        if chunktext != '': # chunkitem beenden, bisher gesammelten Text packen
+                            outputchunks.append(Chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapter_id))
+                            self.currentChunkID +=1
+                            chunktext = ''
+                            paracount = 0
+                        outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'table', match.group('sourcecode'), last_chapter_id))
                         self.currentChunkID += 1
                     elif match.group('para'):
                         if chunktext != '': chunktext += '\n'
