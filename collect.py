@@ -87,6 +87,8 @@ class Chunker: # pylint: disable=unused-variable
             paracount = 0
             chunktext = ''
             sourcecode_text = ''
+            heading_text = ''
+            current_heading_level = None
             last_source_chaptername = inputchunks[0].source_chaptername
             last_chapter_id = inputchunks[0].chapter_id
             chunkitem: Chunk # typehint     
@@ -106,7 +108,13 @@ class Chunker: # pylint: disable=unused-variable
                     re.DOTALL | re.IGNORECASE
                 )
                 for match in tag_regex.finditer(chunkitem.content):
-                    # Wenn kein source-code und source-code-Akkumulator nicht leer, diesen zuerst ausgeben
+                    # Akkumulatoren ausgeben, wenn der aktuelle Match nicht derselbe Typ ist
+                    if not match.group('heading') and heading_text != '':
+                        outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'heading', heading_text, last_chapter_id))
+                        outputchunks[-1].headinglevel = current_heading_level
+                        self.currentChunkID += 1
+                        heading_text = ''
+                        current_heading_level = None
                     if not match.group('sourcecode') and sourcecode_text != '':
                         outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'table', sourcecode_text, last_chapter_id))
                         self.currentChunkID += 1
@@ -150,10 +158,17 @@ class Chunker: # pylint: disable=unused-variable
                         heading_level_match = re.match(r'<(h[1-6])', heading_html, re.IGNORECASE)
                         heading_level = heading_level_match.group(1) if heading_level_match else None
                         text = re.sub(r'<.*?>', '', heading_html).strip()
-                        outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'heading', text, last_chapter_id))
-                        if heading_level:
-                            outputchunks[-1].headinglevel = heading_level
-                        self.currentChunkID += 1
+                        # Aufeinanderfolgende Überschriften gleicher Ebene sammeln
+                        if current_heading_level is not None and heading_level != current_heading_level:
+                            # Überschriftsebene hat sich geändert -> bisherige Überschriften ausgeben
+                            outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'heading', heading_text, last_chapter_id))
+                            outputchunks[-1].headinglevel = current_heading_level
+                            self.currentChunkID += 1
+                            heading_text = ''
+                        if heading_text != '':
+                            heading_text += '\n'
+                        heading_text += text
+                        current_heading_level = heading_level
                     elif match.group('sourcecode'):
                         if chunktext != '': # chunkitem beenden, bisher gesammelten Text packen
                             outputchunks.append(Chunk(last_source_chaptername,self.currentChunkID,'text',chunktext,last_chapter_id))
@@ -196,11 +211,17 @@ class Chunker: # pylint: disable=unused-variable
                         chunktext += '\n' + text
                         paracount +=1                        
                         
-                # Restlichen source-code-Block ausgeben
+                # Restlichen source-code-Block und Überschriften ausgeben
                 if sourcecode_text != '':
                     outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'table', sourcecode_text, last_chapter_id))
                     self.currentChunkID += 1
                     sourcecode_text = ''
+                if heading_text != '':
+                    outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'heading', heading_text, last_chapter_id))
+                    outputchunks[-1].headinglevel = current_heading_level
+                    self.currentChunkID += 1
+                    heading_text = ''
+                    current_heading_level = None
                 last_source_chaptername = chunkitem.source_chaptername
                 last_chapter_id = chunkitem.chapter_id    
             if chunktext != '': # letztes <p> im Kapitel aufnehmen
