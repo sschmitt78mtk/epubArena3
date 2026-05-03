@@ -186,8 +186,8 @@ class Chunker: # pylint: disable=unused-variable
                         if (chunktext.count(' ') + text.count(' ')) > self.maxwords or paracount >= self.maxps:
                             outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'text', chunktext, last_chapter_id))
                             self.currentChunkID += 1
-                            chunktext = ''
-                            paracount = 0
+                            chunktext = '\n' + text
+                            paracount = 1
                         else:
                             chunktext += '\n' + text
                     elif match.group('li'):
