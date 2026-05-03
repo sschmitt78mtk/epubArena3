@@ -356,6 +356,55 @@ class TestChunkitMixedContent:
 # Edge cases
 # ===========================================================================
 
+class TestChunkitImageSingleQuotes:
+    def test_image_with_single_quoted_src(self):
+        """Images with single-quoted src attributes should be recognized."""
+        chunker = Chunker(maxps=20, maxwords=350)
+        result = chunker.chunkit([_make_chunk("<img src='cover.jpeg'>")])
+        assert len(result) == 1
+        assert result[0].chunktype == "image"
+        assert result[0].content == "images/cover.jpeg"
+
+    def test_image_with_single_quoted_src_and_path(self):
+        """Images with single-quoted src and path should be recognized."""
+        chunker = Chunker(maxps=20, maxwords=350)
+        result = chunker.chunkit([_make_chunk("<img src='../Images/photo.png' />")])
+        assert len(result) == 1
+        assert result[0].chunktype == "image"
+        assert result[0].content == "images/photo.png"
+
+
+class TestChunkitNoEmptyChunks:
+    def test_first_paragraph_does_not_create_empty_chunk(self):
+        """With maxps=1, the first paragraph triggers a split immediately.
+        No empty chunk should be created — only chunks with actual content."""
+        chunker = Chunker(maxps=1, maxwords=350)
+        html = "<p>First paragraph</p><p>Second paragraph</p>"
+        result = chunker.chunkit([_make_chunk(html)])
+        text_chunks = [c for c in result if c.chunktype == "text"]
+        # Each chunk must have non-empty content (after stripping whitespace)
+        for chunk in text_chunks:
+            assert chunk.content.strip() != '', (
+                f"Empty chunk found with chunk_id {chunk.chunk_id}"
+            )
+        # Both paragraphs must appear in output
+        all_content = "".join(c.content for c in text_chunks)
+        assert "First paragraph" in all_content
+        assert "Second paragraph" in all_content
+
+    def test_long_first_paragraph_does_not_create_empty_chunk(self):
+        """A first paragraph that exceeds maxwords should not create an
+        empty chunk before it."""
+        chunker = Chunker(maxps=20, maxwords=3)
+        html = "<p>this is a very long first paragraph that exceeds the word limit</p>"
+        result = chunker.chunkit([_make_chunk(html)])
+        text_chunks = [c for c in result if c.chunktype == "text"]
+        for chunk in text_chunks:
+            assert chunk.content.strip() != '', (
+                f"Empty chunk found with chunk_id {chunk.chunk_id}"
+            )
+
+
 class TestChunkitEdgeCases:
     def test_chunker_state_reset_on_new_instance(self):
         """Each Chunker instance should start with currentChunkID=0."""
