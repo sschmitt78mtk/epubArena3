@@ -96,7 +96,7 @@ class Chunker: # pylint: disable=unused-variable
                 tag_regex = re.compile(
                     r'(?P<table><table.*?>.*?</table>)|'
                     r'(?P<pre><pre.*?>.*?</pre>)|'
-                    r'(?P<img><img\s+[^>]*src="([^"]+)"[^>]*>)|'
+                    r"(?P<img><img\s+[^>]*src=['\"]([^'\"]+)['\"][^>]*>)|"
                     r'(?P<heading><h[1-6][^>]*>.*?</h[1-6]>)|'
                     r'(?P<sourcecode><p\s+class="source-code"[^>]*>.*?</p>)|'
                     r'(?P<para><p[^>]*>.*?</p>)|'
@@ -141,7 +141,7 @@ class Chunker: # pylint: disable=unused-variable
                             self.currentChunkID +=1
                             chunktext = ''
                             paracount = 0
-                        src_match = re.search(r'src="([^"]+)"', match.group('img'))
+                        src_match = re.search(r'''src=['"]([^'"]+)['"]''', match.group('img'))
                         if src_match:
                             src = src_match.group(1)
                             imagefilename = 'images/' + os.path.basename(str(src)) # Pfadnamen standardisieren
@@ -184,8 +184,9 @@ class Chunker: # pylint: disable=unused-variable
                         paracount +=1
                         text = re.sub(r'<.*?>', '', match.group('para')).strip()
                         if (chunktext.count(' ') + text.count(' ')) > self.maxwords or paracount >= self.maxps:
-                            outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'text', chunktext, last_chapter_id))
-                            self.currentChunkID += 1
+                            if chunktext != '':
+                                outputchunks.append(Chunk(last_source_chaptername, self.currentChunkID, 'text', chunktext, last_chapter_id))
+                                self.currentChunkID += 1
                             chunktext = '\n' + text
                             paracount = 1
                         else:
