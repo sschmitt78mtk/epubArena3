@@ -56,7 +56,6 @@ This project enables automated processing of EPUB files through a multi-step pip
 | `config.py` | Configuration management |
 | `gui3.py` | FastAPI-based GUI entry point (current primary UI) |
 | `prompts.py` | Prompt management system |
-| `jaccard.py` | Text similarity/comparison (quality checking) |
 | `errorLog.py` | Comprehensive logging system |
 
 ### Data Flow
@@ -213,7 +212,6 @@ cp your-book.epub data/input/
 ### Publication Settings
 - **HTML Output**: Side-by-side or single-column views
 - **EPUB Generation**: Include images, preserve formatting (recently improved with better HTML handling)
-- **Jaccard Clean**: Text similarity filtering (experimental)
 
 ## Recent Improvements
 
