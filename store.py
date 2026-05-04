@@ -10,7 +10,6 @@ import base64 # Für Einbettung von Image
 import ebooklib
 from ebooklib import epub
 from errorLog import log
-from jaccard import jaccard_clean
 import config
 from prompts import Promptset
 import markdown
@@ -27,7 +26,7 @@ class Chunk:
         self.imagedata = ''
         self.metadata: list[dict[str, Any]] = []
     
-    def htmlp(self, do_jaccard_clean = False) -> str: # für epubPublication
+    def htmlp(self) -> str: # für epubPublication
         if self.chunktype == 'table' or self.chunktype == 'pre':
             return self.content
         htmlsafecontent = htmlsafe(self.content)
@@ -40,10 +39,6 @@ class Chunk:
             htmlp = f'<div class ="etable">{htmlsafecontent}</div>'
         else:
             content2 = htmlsafecontent
-            if do_jaccard_clean: 
-                jaccardwin, content2 = jaccard_clean(content2)
-                if jaccardwin < 0.99: log.printlog(f"Jaccard_clean ({self.chunk_id}): {jaccardwin:.2f}")
-            #if content2 != self.content: print('jaccard:' + self.content)
             if config.cfg.use_markdown: content2 = markdown.markdown(content2)
             if '\n' in content2:
                 content2 = content2.replace('\n', '<br>').replace('</p><br>','</p>')
@@ -97,6 +92,7 @@ class Translation:
         return modelinfo + promptinfo + wordcount
 
                   
+
 class Mainstore:
     def __init__(self, source_epub_filename: str):
         self.source_epub_filename = source_epub_filename
@@ -176,14 +172,13 @@ def loadstore(source_epub_filename: str) -> Mainstore: # pylint: disable=unused-
             log.printlog(f'{pkl_filename} konnte nicht geladen werden. {str(exc)}')
             return (Mainstore(source_epub_filename)) # wenn es nicht geladen werden kann, einen neuen erstellen  
       
-    
+      
 class Publication: # pylint: disable=unused-variable
     def __init__(self, mainstoreproject: Mainstore):
         self.mainstoreproject = mainstoreproject
         self.source_epub_filename = mainstoreproject.source_epub_filename
         self.html_filename = self.source_epub_filename + '.html'
         self.outputpath = ''
-        self.jaccard_clean = False # True
     
     def genHTML(self, translation_project: Translation, css_file = 'templates/default.css', preview = False, 
                 link_to_pictures = False, save_file = True) -> str:
@@ -208,7 +203,6 @@ class Publication: # pylint: disable=unused-variable
             elif chunk_item.chunktype == 'table':
                 html_str += f'<div class ="etable">{chunk_item.content}</div>'
             else:
-                # TBD: self.jaccard_clean 
                 html_str += f'<p>{chunk_item.content}<br><cs class="chunkid">{chunk_item.chunk_id}</cs></p>'
         html_str += translation_project.promptset.info()
         html_str += '</body>\n</html>'
@@ -266,14 +260,11 @@ class Publication: # pylint: disable=unused-variable
                 html_str += f'<tr><td class="translation">{content_source}<br><cs class="chunkid">{chunk_item.chunk_id}</cs></td>'
                 for tproject in translation_projects[1:]:# erstes überspringen 
                     content2 = htmlsafe(self._content_by_chunk_id(chunk_item.chunk_id,tproject))
-                    if self.jaccard_clean: 
-                        jaccardwin, content2 = jaccard_clean(content2)
-                        if jaccardwin < 0.99: log.printlog(f"Jaccard_clean ({chunk_item.chunk_id}): {jaccardwin:.2f}")
                     if config.cfg.use_markdown: content2 = markdown.markdown(content2)
                     # print(content2)
                     html_str += f'<td class="translation"><div>{content2}</div></td>'
                 html_str += '</tr>\n'  
-        
+    
         html_str += '<td class="translation">' + translation_projects[0].info().replace("\n","<br>")+ '</td>'
         for tproject in translation_projects[1:]: # erstes überspringen
             html_str += '<td class="translation">' + tproject.info().replace("\n","<br>")+ '</td>'
@@ -326,12 +317,12 @@ class Publication: # pylint: disable=unused-variable
                     chapter_text = str(all_chapters[-1].content)
                 else: 
                     chapter_text = ''
-                chapter_text += chunk_item.htmlp(self.jaccard_clean)
+                chapter_text += chunk_item.htmlp()
                 all_chapters[-1].content = chapter_text
             
             for echapter in all_chapters:
                 book.add_item(echapter)        
-            
+    
             booksource = epub.read_epub(str(config.PATH_INP / self.source_epub_filename))
             epubimages = list(booksource.get_items_of_type(ebooklib.ITEM_IMAGE)) + list(booksource.get_items_of_type(ebooklib.ITEM_COVER))
             for image in epubimages:
