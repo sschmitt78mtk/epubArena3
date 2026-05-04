@@ -32,31 +32,6 @@ class Llmcaller: # pylint: disable=unused-variable
                     api_key=self.api_key,
                     timeout=timeout
                 )
-               
-    def request(self, instructtext: str, activepromptset : Promptset | None, max_tokenoverride = 0) -> str | None:
-        if self.simulate: return 'SIMOK'
-        if activepromptset is None:
-            log.error('Request activepromptset is None')
-            return None
-        requesttext = activepromptset.prePrompt + instructtext + activepromptset.postPrompt
-        try:
-            response = self.local_llm.chat.completions.create(
-                model=self.model,
-                messages=[
-                            {"role": "system", "content": activepromptset.system_message},
-                            {"role": "user", "content": requesttext}
-                            ],
-                stream=False,
-                seed = self.seed,
-                temperature = activepromptset.temperature,
-                top_p = activepromptset.top_p, 
-                max_tokens = max_tokenoverride if max_tokenoverride > 0 else activepromptset.maxNewToken
-                )
-            answer = response.choices[0].message.content
-            return answer
-        except Exception as e:
-            log.error(f'Llmcaller requestOAi error {str(e)}')
-            return None
     
     async def request_async(self, instructtext: str, activepromptset: Promptset | None, max_tokenoverride=0) -> str | None:
         """Async version of request method for parallel processing"""

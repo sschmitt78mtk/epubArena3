@@ -11,11 +11,6 @@ from errorLog import log
 from call import Llmcaller
 import config
 
-# class chapterhtmlpkg(chunk):
-#     def __init__(self, source_chaptername: str, html_str: str):
-#         self.chapterhtml_str = html_str
-#         super().__init__() 
-
 class Processor: 
     def __init__(self, sourcetranslation: Translation, processedTranslation: Translation, mainstore4save: Mainstore,
                  translationmodelname: str, prompt: Promptset):

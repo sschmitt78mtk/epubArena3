@@ -349,10 +349,6 @@ def save_lastConfig() -> None:
     except Exception as exc:
         errorLog.log.printlog(f'{pklFilename} konnte nicht gespeichert werden. {str(exc)}')
 
-def open_browser() -> None:
-    time.sleep(1)
-    webbrowser.open('http://127.0.0.1:8080/')
-
 if __name__ == '__main__':
     load_lastConfig()
     import uvicorn

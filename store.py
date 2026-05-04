@@ -115,13 +115,6 @@ class Mainstore:
         except Exception as exc:
             log.error(f'Fehler beim Schreiben von {self.pkl_filename}, {str(exc)}')
             
-    # def _load(self):
-    #     try:
-    #         with open(self.pklFilename, 'rb') as f:
-    #             self = pickle.load(f)
-    #     except Exception as e:
-    #         log.printlog(f'{self.pklFilename} konnte nicht geladen werden. {str(e)}')
-
     def getTranslationByModelName(self, modelname: str) -> Translation:
         '''
         Wenn es noch keine Übersetzung mit dem Namen gibt, wird eine erstellt
