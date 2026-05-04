@@ -89,7 +89,6 @@ class Configuration:
         #self.preview_on_autosave = preview_on_autosave
         self.publish_only = False
         self.use_markdown = True
-        self.llm_from_file = False
         self.use_langchain = False
         self.translate_heading = True
         self.ce_start = 0

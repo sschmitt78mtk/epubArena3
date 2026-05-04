@@ -3,13 +3,6 @@ from openai import OpenAI, AsyncOpenAI
 from errorLog import log
 from prompts import Promptset
 import config
-
-#from langchain_openai import ChatOpenAI
-# from langchain_core.messages import HumanMessage, SystemMessage
-# from langchain_core.prompts import PromptTemplate
-# from langchain_core.prompts import ChatPromptTemplate
-# from langchain_core.output_parsers import StrOutputParser
-# from summary import getsummary
     
 class Llmcaller: # pylint: disable=unused-variable
     def __init__(self, model = config.cfg.current_open_api_modelname, api_base_url = config.cfg.current_openai_api_base,
@@ -39,18 +32,6 @@ class Llmcaller: # pylint: disable=unused-variable
                     api_key=self.api_key,
                     timeout=timeout
                 )
-        if config.cfg.llm_from_file:
-            model_path_str = config.PATH_CFG / self.model
-            try:
-                from llama_cpp import Llama
-                self.dllm = Llama(
-                    model_path=model_path_str,
-                    n_ctx=2048,          # Kontextlänge
-                    n_gpu_layers=-1,     # Alle Layer auf der GPU (-1 = auto)
-                    verbose=False
-                )
-            except Exception as e:
-                log.error(f'Fehler beim laden von {model_path_str}, {str(e)}')
                
     def request(self, instructtext: str, activepromptset : Promptset | None, max_tokenoverride = 0) -> str | None:
         if self.simulate: return 'SIMOK'
@@ -58,7 +39,6 @@ class Llmcaller: # pylint: disable=unused-variable
             log.error('Request activepromptset is None')
             return None
         requesttext = activepromptset.prePrompt + instructtext + activepromptset.postPrompt
-        if config.cfg.llm_from_file: return self.directLLMfromFile(activepromptset.system_message, requesttext)        
         try:
             response = self.local_llm.chat.completions.create(
                 model=self.model,
@@ -85,13 +65,10 @@ class Llmcaller: # pylint: disable=unused-variable
         if activepromptset is None:
             log.error('Request activepromptset is None')
             return None
+        if instructtext == '' or instructtext == '\n':
+            return instructtext # skip translation if empty
         
         requesttext = activepromptset.prePrompt + instructtext + activepromptset.postPrompt
-        if config.cfg.llm_from_file:
-            # Run sync directLLMfromFile in thread for async compatibility
-            import asyncio
-            return await asyncio.to_thread(self.directLLMfromFile, activepromptset.system_message, requesttext)
-        
         try:
             response = await self.async_llm.chat.completions.create(
                 model=self.model,
@@ -103,6 +80,9 @@ class Llmcaller: # pylint: disable=unused-variable
                 seed=self.seed,
                 temperature=activepromptset.temperature,
                 top_p=activepromptset.top_p,
+                #extra_body={"thinking": {"type": "disabled"}}, # enabled/disabled
+                #extra_body={"enable_thinking": False},  # Reasoning-Mode deaktivieren
+                #extra_body={"chat_template_kwargs": {"enable_thinking": False}},
                 max_tokens=max_tokenoverride if max_tokenoverride > 0 else activepromptset.maxNewToken
             )
             answer = response.choices[0].message.content
@@ -110,36 +90,4 @@ class Llmcaller: # pylint: disable=unused-variable
         except Exception as e:
             log.error(f'Llmcaller request_async error {str(e)}')
             return None
-        
-    # def requestVialangchain(self, contentstr: str):
-    #     print('langchain..')
-       
-    #     prompt = ChatPromptTemplate.from_messages([
-    #         ("system", "{system}"),
-    #         ("human", "{input}")
-    #     ])
-        
-    #     chain2 = prompt | self.local_llm | StrOutputParser()
-    #     self.history = chain2.invoke({'system': self.system_message,
-    #                                   'input': contentstr })
-
-    #     return self.history
-    
-
-    def directLLMfromFile(self, system_message: str, instructtext: str) -> str | None:
-            try:
-                promptstr = f"<|im_start|>system\n{system_message}<|im_end|>\n<|im_start|>user\n{instructtext}<|im_end|>\n<|im_start|>assistant\n"
-                response = self.dllm.create_completion(
-                    prompt = promptstr,
-                    stream=False,
-                    seed = self.seed,
-                    temperature = self.temperature,
-                    top_p = self.top_p,
-                    max_tokens = self.max_tokens
-                    )
-                answer = response["choices"][0]["text"]
-                return str(answer.strip())
-            except Exception as e:
-                log.error(f'Llmcaller directLLM error {str(e)}')
-                return None
 
