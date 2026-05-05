@@ -16,8 +16,6 @@ LOCAL_OPENAI_API_BASE=os.getenv("LOCAL_LLM_BASE_URL", "http://127.0.0.1:5005/v1"
 app_running = False
 continue_process = True
 
-SUPPORT_KEYBOARD_BREAK = False
-
 
 # Projektbasis (unabhängig vom Working Directory)
 BASE_DIR = Path(__file__).resolve().parent

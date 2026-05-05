@@ -1,11 +1,6 @@
 # python 3.12
-# pip install llama-cpp-python (optional für directLLM) -> akutell kein pythoch für 3.13 (3.12 verwenden?)
-
-# pip install types-keyboard
-# pip install types-beautifulsoup4
-
-# pip install ebooklib beautifulsoup4 requests keyboard markdown markdownify openai uvicorn fastapi Jinja2 python-multipart
-# optional für direct : pip install llama-cpp-python
+# pip install ebooklib beautifulsoup4 markdown markdownify openai uvicorn fastapi Jinja2 python-multipart
+# optional für directLLM: pip install llama-cpp-python
 
 # 1. Environment erstellen
 #python3 -m venv venv_ubuntu
@@ -23,17 +18,10 @@ import os
 import glob
 import config
 
-# pylint: disable=wrong-import-position
-if config.SUPPORT_KEYBOARD_BREAK: import keyboard
-
-#import store
 from collect import Extractor, Cleaner, Chunker
-from store import loadstore, Publication #, get_promptsetByID, load_promptsets, save_promptsets
+from store import loadstore, Publication
 from process import Processor, ProcessorMultiSource
 from errorLog import log
-#from prompts import promptset, get_promptsetByID, load_promptsets, save_promptsets
-
-# pylint: enable=wrong-import-position
 
 def main(ePubFilename: str) -> None:
     config.app_running = True
@@ -118,18 +106,7 @@ def main(ePubFilename: str) -> None:
     log.errorcount = 0
     config.app_running = False
     config.continue_process = True # für nächste Verarbeitung freigeben
-    
 
-if config.SUPPORT_KEYBOARD_BREAK:
-    def on_key_event(event):
-        if event.name == "q":  # Falls "q" gedrückt wurde, Programm abbrechen
-            sure = str(input('Wirklich beenden, tippe: ja \n')) # pylint: disable=bad-builtin
-            if 'ja' in sure.lower() or 'j' in sure.lower():
-                log.printlog('Abbruch durch Nutzer.')
-                config.continue_process = False
-        
-    keyboard.on_press(on_key_event) # Event-Listener starten 
-  
 def run() -> None:
     if config.cfg.batch_jobs:
         for file in glob.glob(str(config.PATH_INP / "*.epub")):
@@ -141,7 +118,4 @@ def run() -> None:
         main(config.cfg.gePubFilename)
     else:
         log.printlog(f'Abbruch, die Datei "{config.cfg.gePubFilename}" existiert nicht.')
-
-if __name__ == "__main__":
-    run()
     
