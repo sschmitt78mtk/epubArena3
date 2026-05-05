@@ -93,7 +93,7 @@ def main(ePubFilename: str) -> None:
     # Work und Publish
     publishHTML = Publication(estore)
     publishHTML.html_filename = ePubFilename + '_SBS.html'
-    publishHTML.genHTML_SideBySide([estore.source] + estore.translations,'templates/defaultsbs.css',False,config.cfg.ce_start,config.cfg.ce_stop)
+    publishHTML.genHTML_SideBySide([estore.source] + estore.translations,'templates/defaultsbs.css',config.cfg.ce_start,config.cfg.ce_stop)
     try:
         publishHTML.genEPUB(estore.getTranslationByModelName(Step2TName)) # die letzte Übersetzung/Summary publizieren
     except Exception as e:
