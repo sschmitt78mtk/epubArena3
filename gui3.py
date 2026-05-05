@@ -45,9 +45,9 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 # Setup Jinja2 templates
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-# Add url_for function to template globals (compatibility with Flask templates)
+# Add url_for function to template globals
 def url_for(endpoint: str, **kwargs):
-    """Simple url_for compatibility for Flask templates"""
+    """Simple url_for compatibility for templates"""
     if endpoint == 'static':
         filename = kwargs.get('filename', '')
         return f"/static/{filename}"
@@ -62,7 +62,7 @@ def url_for(endpoint: str, **kwargs):
 
 templates.env.globals['url_for'] = url_for
 
-# Global state (similar to Flask app)
+# Global state
 statustext = 'Warten auf Datei'
 
 # Application state
