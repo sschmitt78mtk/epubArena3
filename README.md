@@ -100,8 +100,8 @@ git clone https://github.com/sschmitt78mtk/epubArena3.git
 cd epubArena3
 
 # Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -111,7 +111,7 @@ pip install -r requirements.txt
 
 ```bash
 # Build the Docker image
-docker build -t epubarena3-20260309:latest .
+docker build -t epubarena3:latest .
 
 # Or use Docker Compose
 docker-compose up -d
@@ -197,7 +197,7 @@ docker-compose up -d
 # Upload EPUB files to data/input directory
 cp your-book.epub data/input/
 
-# Access web interface at http://localhost:8084
+# Access web interface at http://localhost:8082
 # Configure and process through the GUI
 ```
 
