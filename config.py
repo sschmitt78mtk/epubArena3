@@ -84,7 +84,6 @@ class Configuration:
         self.modelname_translation = ""  # Wenn abweichendes Modell für Übersetzung, wird die abwechelnde Generierung angehalten
         self.batch_jobs = False
         self.force_redo = False
-        #self.preview_on_autosave = preview_on_autosave
         self.publish_only = False
         self.use_markdown = True
         self.use_langchain = False

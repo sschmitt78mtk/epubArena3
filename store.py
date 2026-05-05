@@ -180,7 +180,7 @@ class Publication: # pylint: disable=unused-variable
         self.html_filename = self.source_epub_filename + '.html'
         self.outputpath = ''
     
-    def genHTML(self, translation_project: Translation, css_file = 'templates/default.css', preview = False, 
+    def genHTML(self, translation_project: Translation, css_file = 'templates/default.css', 
                 link_to_pictures = False, save_file = True) -> str:
         css = self._loadcss(css_file)
         html_str =  f'<html><head><style>{css}</style>'
@@ -193,8 +193,6 @@ class Publication: # pylint: disable=unused-variable
             if chunk_item.chunktype == 'image':
                 if link_to_pictures: # epubPublishing
                     html_str += f'<figure class="mediaobject"><img src="{chunk_item.content.replace("../","")}" /></figure>'
-                elif preview: 
-                    html_str += f'<p>image {chunk_item.content}</p>\n'
                 else:
                     mime, base64_string = getbase64image(self.source_epub_filename,chunk_item.content)
                     html_str += f'<img class= "figure" src="data:image/{mime};base64,{base64_string}" />\n'
@@ -214,7 +212,7 @@ class Publication: # pylint: disable=unused-variable
                 log.error(f'Fehler beim Schreiben von {self.html_filename}, {str(exc)}')
         return html_str
 
-    def genHTML_SideBySide(self, translation_projects: list[Translation], css_file = 'templates/defaultsbs.css', preview = False,
+    def genHTML_SideBySide(self, translation_projects: list[Translation], css_file = 'templates/defaultsbs.css',
                            start_at_chunk_id = 0, stop_at_chunk_id = None, nav_style = 1) -> None:
         css = self._loadcss(css_file)
         numcolumns = len(translation_projects)
@@ -243,11 +241,8 @@ class Publication: # pylint: disable=unused-variable
             if stop_at_chunk_id and chunk_item.chunk_id > stop_at_chunk_id: break
             htmlsafecontent = htmlsafe(chunk_item.content) 
             if chunk_item.chunktype == 'image':
-                if preview: 
-                    html_str += f'<tr class="imagerow"><th colspan="{numcolumns}"><p>image {htmlsafecontent}</p></th></tr>\n'
-                else:
-                    mime, base64_string = getbase64image(self.source_epub_filename,chunk_item.content)
-                    html_str += f'<tr class="imagerow"><th colspan="{numcolumns}"><img src="data:image/{mime};base64,{base64_string}" /></th></tr>\n'
+                mime, base64_string = getbase64image(self.source_epub_filename,chunk_item.content)
+                html_str += f'<tr class="imagerow"><th colspan="{numcolumns}"><img src="data:image/{mime};base64,{base64_string}" /></th></tr>\n'
             elif chunk_item.chunktype == 'heading':
                 html_str += f'<tr class="headingrow"><th colspan="{numcolumns}"><{chunk_item.headinglevel}>{htmlsafecontent}</{chunk_item.headinglevel}></th></tr>\n'
 
