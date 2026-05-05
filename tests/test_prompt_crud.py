@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Automatic test script for Prompt CRUD API endpoints.
-Run with: python test_prompt_crud.py
+Run with: python -m pytest tests/test_prompt_crud.py
+   or: cd tests && python test_prompt_crud.py
 """
 
 import asyncio
@@ -10,8 +11,8 @@ import sys
 import os
 from pathlib import Path
 
-# Add current directory to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Add parent directory (project root) to path so imports work from tests/ folder
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import httpx
 import config
@@ -19,7 +20,7 @@ from prompts import Promptset
 
 # Test configuration
 BASE_URL = "http://127.0.0.1:8080"
-API_BASE = f"{BASE_URL}/api/prompts"
+API_BASE = f"{BASE_URL}/api/prompts/"
 
 class PromptCRUDTest:
     def __init__(self):
@@ -35,7 +36,7 @@ class PromptCRUDTest:
         # Delete all created prompts
         for prompt_id in self.created_ids:
             try:
-                await self.client.delete(f"{API_BASE}/{prompt_id}")
+                await self.client.delete(f"{API_BASE}{prompt_id}")
             except:
                 pass
         
@@ -88,7 +89,7 @@ class PromptCRUDTest:
         """Test GET /api/prompts/{id}"""
         print(f"\n3. Testing GET prompt {prompt_id}...")
         try:
-            response = await self.client.get(f"{API_BASE}/{prompt_id}")
+            response = await self.client.get(f"{API_BASE}{prompt_id}")
             assert response.status_code == 200, f"Expected 200, got {response.status_code}"
             prompt = response.json()
             assert prompt["PromptID"] == prompt_id
@@ -109,7 +110,7 @@ class PromptCRUDTest:
         }
         
         try:
-            response = await self.client.put(f"{API_BASE}/{prompt_id}", json=update_data)
+            response = await self.client.put(f"{API_BASE}{prompt_id}", json=update_data)
             assert response.status_code == 200, f"Expected 200, got {response.status_code}"
             updated = response.json()
             assert updated["system_message"] == update_data["system_message"]
@@ -127,15 +128,15 @@ class PromptCRUDTest:
         print(f"\n5. Testing DELETE prompt {prompt_id}...")
         try:
             # First verify it exists
-            get_response = await self.client.get(f"{API_BASE}/{prompt_id}")
+            get_response = await self.client.get(f"{API_BASE}{prompt_id}")
             assert get_response.status_code == 200
             
             # Then delete it
-            delete_response = await self.client.delete(f"{API_BASE}/{prompt_id}")
+            delete_response = await self.client.delete(f"{API_BASE}{prompt_id}")
             assert delete_response.status_code == 204, f"Expected 204, got {delete_response.status_code}"
             
             # Verify it's gone
-            get_after_response = await self.client.get(f"{API_BASE}/{prompt_id}")
+            get_after_response = await self.client.get(f"{API_BASE}{prompt_id}")
             assert get_after_response.status_code == 404, f"Expected 404 after deletion, got {get_after_response.status_code}"
             
             print(f"   ✓ Deleted prompt {prompt_id}")
@@ -150,7 +151,7 @@ class PromptCRUDTest:
         
         # Test GET non-existent prompt
         try:
-            response = await self.client.get(f"{API_BASE}/999999")
+            response = await self.client.get(f"{API_BASE}999999")
             assert response.status_code == 404, f"Expected 404 for non-existent prompt, got {response.status_code}"
             print("   ✓ GET non-existent prompt returns 404")
         except Exception as e:
@@ -159,7 +160,7 @@ class PromptCRUDTest:
         
         # Test DELETE non-existent prompt
         try:
-            response = await self.client.delete(f"{API_BASE}/999999")
+            response = await self.client.delete(f"{API_BASE}999999")
             assert response.status_code == 404, f"Expected 404 for non-existent prompt, got {response.status_code}"
             print("   ✓ DELETE non-existent prompt returns 404")
         except Exception as e:

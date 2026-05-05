@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Automatic test script for API Config CRUD API endpoints.
-Run with: python test_api_configs.py
+Run with: python -m pytest tests/test_api_configs.py
+   or: cd tests && python test_api_configs.py
 """
 
 import asyncio
@@ -10,15 +11,15 @@ import sys
 import os
 from pathlib import Path
 
-# Add current directory to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Add parent directory (project root) to path so imports work from tests/ folder
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import httpx
 import config
 
 # Test configuration
 BASE_URL = "http://127.0.0.1:8080"
-API_BASE = f"{BASE_URL}/api/configs"
+API_BASE = f"{BASE_URL}/api/configs/"
 
 class APIConfigCRUDTest:
     def __init__(self):
@@ -53,7 +54,7 @@ class APIConfigCRUDTest:
             # Skip if it was in original
             if not any(c["id"] == config_item["id"] for c in self.original_configs):
                 try:
-                    await self.client.delete(f"{API_BASE}/{config_item['id']}")
+                    await self.client.delete(f"{API_BASE}{config_item['id']}")
                 except:
                     pass
         
@@ -110,7 +111,7 @@ class APIConfigCRUDTest:
         """Test GET /api/configs/{id}"""
         print(f"\n3. Testing GET config {config_id}...")
         try:
-            response = await self.client.get(f"{API_BASE}/{config_id}")
+            response = await self.client.get(f"{API_BASE}{config_id}")
             assert response.status_code == 200, f"Expected 200, got {response.status_code}"
             config_item = response.json()
             assert config_item["id"] == config_id
@@ -131,7 +132,7 @@ class APIConfigCRUDTest:
         }
         
         try:
-            response = await self.client.put(f"{API_BASE}/{config_id}", json=update_data)
+            response = await self.client.put(f"{API_BASE}{config_id}", json=update_data)
             assert response.status_code == 200, f"Expected 200, got {response.status_code}"
             updated = response.json()
             assert updated["name"] == update_data["name"]
@@ -155,7 +156,7 @@ class APIConfigCRUDTest:
         }
         
         try:
-            response = await self.client.put(f"{API_BASE}/{config_id}", json=update_data)
+            response = await self.client.put(f"{API_BASE}{config_id}", json=update_data)
             assert response.status_code == 200, f"Expected 200, got {response.status_code}"
             updated = response.json()
             assert updated["name"] == update_data["name"]
@@ -182,7 +183,7 @@ class APIConfigCRUDTest:
         }
         
         try:
-            response = await self.client.put(f"{API_BASE}/{config_id}", json=update_data)
+            response = await self.client.put(f"{API_BASE}{config_id}", json=update_data)
             assert response.status_code == 200, f"Expected 200, got {response.status_code}"
             updated = response.json()
             assert updated["name"] == update_data["name"]
@@ -199,15 +200,15 @@ class APIConfigCRUDTest:
         print(f"\n7. Testing DELETE config {config_id}...")
         try:
             # First verify it exists
-            get_response = await self.client.get(f"{API_BASE}/{config_id}")
+            get_response = await self.client.get(f"{API_BASE}{config_id}")
             assert get_response.status_code == 200
             
             # Then delete it
-            delete_response = await self.client.delete(f"{API_BASE}/{config_id}")
+            delete_response = await self.client.delete(f"{API_BASE}{config_id}")
             assert delete_response.status_code == 204, f"Expected 204, got {delete_response.status_code}"
             
             # Verify it's gone
-            get_after_response = await self.client.get(f"{API_BASE}/{config_id}")
+            get_after_response = await self.client.get(f"{API_BASE}{config_id}")
             assert get_after_response.status_code == 404, f"Expected 404 after deletion, got {get_after_response.status_code}"
             
             print(f"   ✓ Deleted config {config_id}")
@@ -223,7 +224,7 @@ class APIConfigCRUDTest:
         
         # Test GET non-existent config
         try:
-            response = await self.client.get(f"{API_BASE}/999999")
+            response = await self.client.get(f"{API_BASE}999999")
             assert response.status_code == 404, f"Expected 404 for non-existent config, got {response.status_code}"
             print("   ✓ GET non-existent config returns 404")
         except Exception as e:
@@ -232,7 +233,7 @@ class APIConfigCRUDTest:
         
         # Test DELETE non-existent config
         try:
-            response = await self.client.delete(f"{API_BASE}/999999")
+            response = await self.client.delete(f"{API_BASE}999999")
             assert response.status_code == 404, f"Expected 404 for non-existent config, got {response.status_code}"
             print("   ✓ DELETE non-existent config returns 404")
         except Exception as e:
