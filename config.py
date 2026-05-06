@@ -100,7 +100,7 @@ class Configuration:
         self.prompt2 = get_promptsetByID(all_promptset, 1)
         self.processor_autosave = True
         self.processor_autosave_interval = 10
-        self.api_timeout = 600.0
+        self.api_timeout = 300 # 5 Minutes
         self.max_concurrent_calls = 4
     
     def update_main(self) -> None:

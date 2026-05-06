@@ -6,9 +6,7 @@ import config
     
 class Llmcaller: # pylint: disable=unused-variable
     def __init__(self, model = config.cfg.current_open_api_modelname, api_base_url = config.cfg.current_openai_api_base,
-                 api_key = config.cfg.current_openai_api_key, max_tokens = 500, simulate = False, timeout = None):
-        if timeout is None:
-            timeout = getattr(config.cfg, 'api_timeout', 600.0)
+                 api_key = config.cfg.current_openai_api_key, max_tokens = 500, simulate = False):
         self.max_tokens = max_tokens
         self.seed = 10
         self.mode = 'instruct'
@@ -25,12 +23,12 @@ class Llmcaller: # pylint: disable=unused-variable
         self.local_llm = OpenAI(
                     base_url=self.api_base_url,
                     api_key=self.api_key,
-                    timeout=timeout
+                    timeout=config.cfg.api_timeout
                 )
         self.async_llm = AsyncOpenAI(
                     base_url=self.api_base_url,
                     api_key=self.api_key,
-                    timeout=timeout
+                    timeout=config.cfg.api_timeout
                 )
     
     async def request_async(self, instructtext: str, activepromptset: Promptset | None, max_tokenoverride=0) -> str | None:
