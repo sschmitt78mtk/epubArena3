@@ -26,20 +26,18 @@
     /* Platziert die Divs mit Abstand dazwischen */
 }
 
-/* #topleft {
-    width: 100ch;
-    box-sizing: border-box;
-    
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+    flex-wrap: wrap;
 }
 
-#topright {
-    width: 50%;
-    box-sizing: border-box;
-} */
-
 .description {
-    min-width: 50ch;
+    min-width: 28ch;
     display: inline-flex;
+    flex-shrink: 0;
 }
 
 .nameinput {
@@ -227,7 +225,7 @@ html, body {
 }
 
 #topleft {
-    width: 100ch;
+    flex: 1 1 auto;
     min-height: 32em;
     box-sizing: border-box;
     padding: 16px;
@@ -264,16 +262,11 @@ html, body {
 }
 
 #topright {
-    flex: 0 0 50%;
+    flex: 0 0 55%;
     box-sizing: border-box;
     padding: 16px;
     border: 1px solid var(--border);
     background: #fff;
     border-radius: 8px;
     box-shadow: var(--shadow)
-}
-
-.description {
-    min-width: 50ch;
-    display: inline-flex;
 }
