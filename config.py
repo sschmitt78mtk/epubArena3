@@ -86,7 +86,6 @@ class Configuration:
         self.force_redo = False
         self.publish_only = False
         self.use_markdown = True
-        self.use_langchain = False
         self.translate_heading = True
         self.ce_start = 0
         self.ce_stop = 0
