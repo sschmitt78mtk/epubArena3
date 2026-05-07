@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // const visibleColumns = table.querySelectorAll('td.translation:not(.hidden)').length; // Anzahl sichtbarer Spalten
       const visibleColumns = document.querySelectorAll('.controls input[type="checkbox"]:checked').length;
       // const newWidth = `calc(100% / ${visibleColumns})`; // Neue Breite berechnen
-      newWidth = `${100 / visibleColumns}vw`; // Neue Breite berechnen
+      newWidth = `${100 / visibleColumns}%`; // Neue Breite berechnen
       console.log(`${visibleColumns} visibleColumns, width: ${newWidth}`)
       document.documentElement.style.setProperty('--translation-width', newWidth); // CSS-Variable aktualisieren
   }
