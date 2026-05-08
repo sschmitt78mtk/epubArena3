@@ -76,7 +76,7 @@ class Processor:
             """Process a single chunk asynchronously"""
             async with semaphore:
                 try:
-                    log.printlog(f'do: {chunkitem.chunk_id}/{self.sourcetranslation.number_of_chunks} '
+                    log.printlog(f'>>> do: {chunkitem.chunk_id}/{self.sourcetranslation.number_of_chunks} '
                                 f'{chunkitem.source_chaptername} ({chunkitem.chunktype})')
                     
                     if chunkitem.chunktype == 'heading' and config.cfg.translate_heading:
@@ -109,7 +109,7 @@ class Processor:
                         
                         if nextprocessedchunk.chunk_id not in existing_chunk_ids:
                             self.processedTranslation.chunks.append(nextprocessedchunk)
-                        log.print(f'{nextprocessedchunk.content}')
+                        log.print(f'<<< {chunkitem.chunk_id}/{self.sourcetranslation.number_of_chunks}:\n {nextprocessedchunk.content}')
                         return True
                     else:
                         log.error(f'Error LLM for chunk {chunkitem.chunk_id} - skipping')
