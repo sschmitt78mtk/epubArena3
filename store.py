@@ -235,8 +235,8 @@ class Publication: # pylint: disable=unused-variable
             html_str += '<label><input type="checkbox" id="textcompare">compare</label></div></nav>'
         html_str += '<div class="content">'
         html_str += '<table id="translationstable" width="100%" cellspacing="2" cellpadding="2" border="1"><tbody>\n' 
+        log.print(f'genHTMLsbs: {translation_projects[0].number_of_chunks} chunks...')
         for chunk_item in translation_projects[0].chunks:
-            log.print(f'genHTMLsbs: {chunk_item.chunk_id}/{translation_projects[0].number_of_chunks} {chunk_item.source_chaptername}')
             if chunk_item.chunk_id < start_at_chunk_id: continue
             if stop_at_chunk_id and chunk_item.chunk_id > stop_at_chunk_id: break
             htmlsafecontent = htmlsafe(chunk_item.content) 
@@ -268,6 +268,7 @@ class Publication: # pylint: disable=unused-variable
         try:
             with open(config.PATH_OUT / self.html_filename, "w", encoding="utf-8") as text_file:
                     text_file.write(html_str)
+            log.print(f'genHTMLsbs ({self.html_filename}): {translation_projects[0].number_of_chunks} chunks finished.')
         except Exception as exc:
             log.error(f'Fehler beim Schreiben von {self.html_filename}, {str(exc)}')
     
