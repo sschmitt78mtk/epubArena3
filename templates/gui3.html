@@ -184,32 +184,36 @@
                 <div class="form-row">
                     <label class="description" for="ce_start">start</label>
                     <input type="number" class="numberinput" name="ce_start" id="ce_start" value="{{ ce_start }}" min="0">
+                </div>
+                <div class="form-row">    
                     <label class="description" for="ce_stop">stop</label>
                     <input type="number" class="numberinput" name="ce_stop" id="ce_stop" value="{{ ce_stop }}" min="0">
                 </div>
-                <div class="form-row">
+                <div class="form-row align-left">
                     <input type="checkbox" name="translate_heading" id="translate_heading" {% if translate_heading %}checked{% endif %}>
                     <label for="translate_heading">translate_heading</label>
                 </div>
-                <div class="form-row">
+                <div class="form-row align-left">
                     <input type="checkbox" name="batch_jobs" id="batch_jobs" {% if batch_jobs %}checked{% endif %}>
                     <label for="batch_jobs">batch_jobs (all epub files in 'input')</label>
                 </div>
-                <div class="form-row">
+                <div class="form-row align-left">
                     <input type="checkbox" name="force_redo" id="force_redo" {% if force_redo %}checked{% endif %}>
                     <label for="force_redo">force_redo (overwrite existing)</label>
                 </div>
-                <div class="form-row">
+                <div class="form-row align-left">
                     <input type="checkbox" name="publish_only" id="publish_only" {% if publish_only %}checked{% endif %}>
                     <label for="publish_only">publish_only</label>
                 </div>
-                <div class="form-row">
+                <div class="form-row align-left">
                     <input type="checkbox" name="use_markdown" id="use_markdown" {% if use_markdown %}checked{% endif %}>
                     <label for="use_markdown">use_markdown</label>
                 </div>
                 <div class="form-row">
                     <label for="chunker_maxp" class="description">chunker_maxp</label>
                     <input type="number" class="numberinput" name="chunker_maxp" id="chunker_maxp" value="{{ chunker_maxp }}" min="1">
+                </div>
+                <div class="form-row">
                     <label for="chunker_maxwords" class="description">chunker_maxwords</label>
                     <input type="number" class="numberinput" name="chunker_maxwords" id="chunker_maxwords" value="{{ chunker_maxwords }}" min="1">
                 </div>

@@ -6,8 +6,7 @@
 #logfileinfo {
     border: 1px solid #ddd;
     background-color: #f9f9f9;
-    min-height: 32em;
-    max-height: 32em;
+    height: 100%;
     overflow-y: auto;
     /* Scrollbalken anzeigen */
 }
@@ -16,33 +15,47 @@
 #logfileinfo p {
     margin: 3px;
     padding: 3px;
-    font-size: small;
+    font-size: 0.6rem;
 }
 
 .container {
     display: flex;
-    /* Aktiviert Flexbox */
     justify-content: space-between;
-    /* Platziert die Divs mit Abstand dazwischen */
+    align-items: stretch;
+    gap: 12px;
+    margin: 10px auto;
+    width: 98%;
 }
 
 .form-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 3px;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 2px;
+    flex-wrap: nowrap;
 }
 
 .description {
-    min-width: 28ch;
+    min-width: 24ch;
     display: inline-flex;
     flex-shrink: 0;
+    font-size: 0.9rem;
 }
 
 .nameinput {
-    /* display: inline-flex; */
-    width: 45ch;
+    width: 100%;
+    max-width: 40ch;
+    padding: 2px 4px;
+}
+
+.align-right {
+    text-align: right;
+}
+
+.align-left {
+    text-align: left;
+    justify-content: flex-start !important;
 }
 
 .numberinput {
@@ -50,16 +63,14 @@
 }
 
 .promptinput {
-    width: 95%;
-    /* Volle Breite des Containers */
+    width: 100%;
+    box-sizing: border-box;
     resize: vertical;
-    /* Erlaubt vertikale Größenänderung (optional) */
     white-space: pre-wrap;
-    /* Behält Zeilenumbrüche und ermöglicht automatischen Umbruch */
     word-wrap: break-word;
-    /* Umbruch von langen Wörtern */
     overflow-wrap: break-word;
-    /* Modernere Alternative zu word-wrap */
+    font-size: 0.6rem;
+    padding: 4px;
 }
 
 .narrowtd {
@@ -214,26 +225,15 @@ html, body {
 .site-header .site-nav a:hover { text-decoration: underline; }
 
 /* Page container uses a fixed-width, desktop-first grid */
-.container {
-    width: 95%;
-    margin: 20px auto;
-    min-height: 33em;
-    /* min-height: 600px; */
-    display: flex;
-    justify-content: space-between;
-    align-items: stretch;
-}
 
 #topleft {
-    flex: 1 1 auto;
-    min-height: 32em;
+    flex: 1;
     box-sizing: border-box;
-    padding: 16px;
+    padding: 12px;
     border: 1px solid var(--border);
     background: #fff;
     border-radius: 8px;
     box-shadow: var(--shadow);
-    margin-bottom: 12px;
 }
 
 #main-content {
@@ -253,20 +253,38 @@ html, body {
 }
 
 #cinema1, #cinema2 {
-    width: 95%;
+    width: 98%;
+    margin: 10px auto;
     background: #fff;
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: var(--shadow);
-    padding: 16px;
+    padding: 12px;
 }
 
 #topright {
-    flex: 0 0 55%;
+    flex: 1.2;
     box-sizing: border-box;
-    padding: 16px;
+    padding: 12px;
     border: 1px solid var(--border);
     background: #fff;
     border-radius: 8px;
-    box-shadow: var(--shadow)
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+#logfileinfodiv {
+    flex-grow: 1;
+    height: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+#logfileinfo {
+    flex-grow: 1;
+    min-height: 0;
 }
