@@ -8,13 +8,13 @@ p {
     margin-bottom: 0.5em;
 }
 
-.etable {
-    text-align: left;
-}
-
 #translationstable {
     table-layout: fixed;
     width: 100%;
+}
+
+.etable {
+    text-align: left;
 }
 
 td.translation {
@@ -22,14 +22,12 @@ td.translation {
     transition: width 0.3s ease;
     word-wrap: break-word; /* Lange Wörter/Zahlen umbrechen */
     overflow-wrap: break-word; /* Alternative für bessere Browser-Unterstützung */
-    word-break: break-word; /* Lange Wörter auch in flex/table Kontexten umbrechen */
     white-space: normal; /* Standardmäßiges Umbruchverhalten aktivieren */
 }
 
 img {
     max-height: 50vh;
-    max-width: 100%;
-    height: auto;
+    max-width: 80vw;
 } 
 
 img:hover {

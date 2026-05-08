@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
           }
       }
       adjustColumnWidth(); // Breite der Spalten anpassen
+      updateColspans();
       if (colIndex == 99) {
         if (show) { // Alle Zeilen der Tabelle verarbeiten
           document.querySelectorAll('tr').forEach(compareTextinRow);
@@ -20,16 +21,23 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function adjustColumnWidth() {
-      // const visibleColumns = table.querySelectorAll('td.translation:not(.hidden)').length; // Anzahl sichtbarer Spalten
-      const visibleColumns = document.querySelectorAll('.controls input[type="checkbox"]:checked').length;
-      // const newWidth = `calc(100% / ${visibleColumns})`; // Neue Breite berechnen
-      newWidth = `${100 / visibleColumns}%`; // Neue Breite berechnen
+      const checkedCheckboxes = document.querySelectorAll('.controls input[type="checkbox"]:not(#textcompare):checked');
+      const visibleColumns = checkedCheckboxes.length || 1;
+      const newWidth = `${100 / visibleColumns}%`;
       console.log(`${visibleColumns} visibleColumns, width: ${newWidth}`)
-      document.documentElement.style.setProperty('--translation-width', newWidth); // CSS-Variable aktualisieren
+      document.documentElement.style.setProperty('--translation-width', newWidth);
+  }
+
+  function updateColspans() {
+      const visibleColumns = document.querySelectorAll('.controls input[type="checkbox"]:not(#textcompare):checked').length || 1;
+      const headers = table.querySelectorAll('th[colspan]');
+      headers.forEach(th => {
+          th.setAttribute('colspan', visibleColumns);
+      });
   }
 
   adjustColumnWidth(); // initial nach Laden der Seite Spaltenbreite festlegen
-
+  updateColspans();
 
   function stringToColor(str) {
     let hash = 0;
