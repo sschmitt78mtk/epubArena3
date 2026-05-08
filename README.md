@@ -1,6 +1,6 @@
 # epubArena3 - EPUB Processing and Translation Pipeline
 
-epubArena3 is a EPUB processing and translation pipeline that uses Large Language Models (LLMs) to transform EPUB files through customizable workflows including summarization, translation, and content analysis. The system provides both command-line and web-based GUI interfaces for managing EPUB processing tasks.
+epubArena3 is a EPUB processing and translation pipeline that uses Large Language Models (LLMs) to transform EPUB files through customizable workflows including summarization, translation, and content analysis. The system provides a web-based GUI interfaces for managing EPUB processing tasks.
 
 **Note:** This project is functional but actively evolving. The `main` branch now tracks the FastAPI GUI and async flow; the previous synchronous/Flask implementation lives in the `synchronous` branch for comparison or fallback.
 
@@ -21,20 +21,18 @@ This project enables automated processing of EPUB files through a multi-step pip
 - **Multi-Source Processing**: Compare and combine multiple translations
 
 ### LLM Integration
-- **OpenAI-Compatible APIs**: Support for local LLM servers (LM Studio, llama.cpp)
-- **Local Model Support**: Load models via `llama-cpp-python`
+- **OpenAI-Compatible APIs**: Support for local LLM servers (LM Studio)
 - **Configurable Parameters**: Temperature, top_p, max tokens, system prompts
 - **Customizable Prompts**: JSON-based prompt management system
 
 ### Publication & Output
 - **Side-by-Side HTML Comparison**: Original vs. processed text with toggleable columns
 - **EPUB Regeneration**: Create new EPUB files from processed content
-- **Batch Processing**: Process multiple EPUB files sequentially
+- **Batch Processing**: Process all EPUB files in input-Folder sequentially
 - **Resume Capability**: Save progress as pickle files for continuation
 
 ### User Interfaces
 - **Web GUI**: FastAPI interface (`gui3.py`) is the primary entry point
-- **Command-Line Interface**: Script-based processing for automation
 - **Real-time Monitoring**: Live log viewing and progress tracking inside the FastAPI GUI
 
 ### Deployment Options
@@ -149,11 +147,6 @@ python gui3.py
 # Access at http://127.0.0.1:8080
 ```
 
-### Command Line
-```bash
-python epubArena3.py
-```
-
 ### Docker Deployment
 ```bash
 # Build and run with Docker Compose
@@ -167,9 +160,8 @@ docker-compose down
 ```
 
 ### Batch Processing
-- Configure `config.py` or use web interface
 - Place EPUB files in `data/input/` directory
-- Enable batch processing mode
+- Enable batch processing mode via web interface
 
 ## Usage Examples
 
@@ -196,6 +188,8 @@ docker-compose up -d
 
 # Upload EPUB files to data/input directory
 cp your-book.epub data/input/
+OR
+use web interface
 
 # Access web interface at http://localhost:8082
 # Configure and process through the GUI
@@ -209,16 +203,12 @@ cp your-book.epub data/input/
 - **Model Selection**: Different models for each processing step
 - **Batch Processing**: Process multiple files sequentially
 
-### Publication Settings
-- **HTML Output**: Side-by-side or single-column views
-- **EPUB Generation**: Include images, preserve formatting (recently improved with better HTML handling)
-
 ## Recent Improvements
 
 The project has seen significant recent development including:
 
 - **FastAPI Migration**: Modern web interface with async support and automatic OpenAPI documentation
-- **Enhanced Chunking System**: Improved paragraph and word-based chunking with duplicate prevention
+- **Enhanced Chunking System**: Improved paragraph and word-based chunking
 - **EPUB Output Fixes**: Better handling of HTML tags in EPUB regeneration
 - **Docker Support**: Full containerization with Dockerfile and docker-compose.yml
 - **Configuration Persistence**: Automatic saving and loading of processing state
