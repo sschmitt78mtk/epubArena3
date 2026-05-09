@@ -267,3 +267,8 @@ For issues and feature requests, please use the GitHub issue tracker.
 *Note: This project is designed for processing EPUB files for educational and research purposes. Always ensure you have the appropriate rights to process and modify any EPUB files.*
 
 *Development Status: This project is functional and actively used, but is still under active development with regular improvements and updates.*
+
+## GUI3-Sample Screens
+![webui-upperhalf](/static/gui3-1.png)
+![webui-lowerhalf](/static/gui3-2.png)
+
