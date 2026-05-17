@@ -90,6 +90,22 @@ EPUB File → extractor → cleaner → chunker → processor → store → Publ
 - Docker and Docker Compose (for containerized deployment) - optional
 - Virtual environment recommended for local development
 
+### System Dependencies (Linux)
+
+The `lxml` Python package (used by EbookLib) requires the `libxslt` and `libxml2` system libraries. On Linux, install them before running the application:
+
+```bash
+# Debian/Ubuntu/Raspberry Pi OS
+sudo apt update
+sudo apt install libxslt1.1 libxml2
+
+# Fedora/RHEL
+sudo dnf install libxslt libxml2
+```
+
+Without these libraries, you will get an error like:
+`ImportError: libxslt.so.1: cannot open shared object file: No such file or directory`
+
 ### Option 1: Local Development Installation
 
 ```bash
