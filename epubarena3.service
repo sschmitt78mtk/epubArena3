@@ -1,0 +1,13 @@
+# /etc/systemd/system/epubarena3.service
+[Unit]
+Description=epubarena3 FastAPI Service
+After=network.target
+
+[Service]
+ExecStart=/home/sascha/epubarena/venv/bin/python3 gui3.py
+WorkingDirectory=/home/sascha/epubarena
+Restart=on-failure
+User=sascha
+
+[Install]
+WantedBy=multi-user.target
