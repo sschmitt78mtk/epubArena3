@@ -206,6 +206,10 @@
                     <label for="publish_only">publish_only</label>
                 </div>
                 <div class="form-row align-left">
+                    <input type="checkbox" name="publish_markdown" id="publish_markdown" {% if publish_markdown %}checked{% endif %}>
+                    <label for="publish_markdown">publish_markdown</label>
+                </div>
+                <div class="form-row align-left">
                     <input type="checkbox" name="use_markdown" id="use_markdown" {% if use_markdown %}checked{% endif %}>
                     <label for="use_markdown">use_markdown</label>
                 </div>

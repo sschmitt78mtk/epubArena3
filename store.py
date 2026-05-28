@@ -286,6 +286,38 @@ class Publication: # pylint: disable=unused-variable
             css = ''
         return css
     
+    def genMD(self, translation_obj: Translation, newfilename = None) -> None:
+        if len(translation_obj.chunks) == 0:
+            log.error(f'genMD Fehler - Translation {translation_obj.modelname} hat keine chunks.')
+            return
+        
+        mdfilename = f'{self.source_epub_filename}_{translation_obj.modelname}.md'
+        if newfilename: mdfilename = newfilename
+        log.printlog(f'Erzeuge Markdown {mdfilename}')
+        
+        md_str = f'# {translation_obj.title}\n\n'
+        md_str += f'*{translation_obj.author} ({translation_obj.modelname})*\n\n'
+        
+        chunk_item: Chunk
+        for chunk_item in translation_obj.chunks:
+            if chunk_item.chunktype == 'image':
+                imagepath = chunk_item.content.replace('../', '')
+                md_str += f'![image]({imagepath})\n\n'
+            elif chunk_item.chunktype == 'heading':
+                level = int(chunk_item.headinglevel[1]) if chunk_item.headinglevel and len(chunk_item.headinglevel) > 1 else 1
+                md_str += f'{"#" * level} {chunk_item.content}\n\n'
+            elif chunk_item.chunktype == 'table' or chunk_item.chunktype == 'pre':
+                md_str += f'{chunk_item.content}\n\n'
+            else:
+                md_str += f'{chunk_item.content}\n\n'
+        
+        try:
+            with open(config.PATH_OUT / mdfilename, 'w', encoding='utf-8') as text_file:
+                text_file.write(md_str)
+            log.printlog(f'Markdown gespeichert: {mdfilename}')
+        except Exception as exc:
+            log.error(f'Fehler beim Schreiben von {mdfilename}, {str(exc)}')
+    
     def genEPUB(self, translation_obj: Translation, newfilename = None) -> None:
         if len(translation_obj.chunks) > 0:
             epubfilename = f'{self.source_epub_filename}_{translation_obj.modelname}.epub'

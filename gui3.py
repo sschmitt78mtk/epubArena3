@@ -144,6 +144,7 @@ async def index_post(
     batch_jobs: Optional[str] = Form(None),
     force_redo: Optional[str] = Form(None),
     publish_only: Optional[str] = Form(None),
+    publish_markdown: Optional[str] = Form(None),
     use_markdown: Optional[str] = Form(None),
     processor_autosave: Optional[str] = Form(None),
     chunker_maxp: Optional[str] = Form(None),
@@ -181,6 +182,7 @@ async def index_post(
             config.cfg.__dict__['batch_jobs'] = batch_jobs == "on"
             config.cfg.__dict__['force_redo'] = force_redo == "on"
             config.cfg.__dict__['publish_only'] = publish_only == "on"
+            config.cfg.__dict__['publish_markdown'] = publish_markdown == "on"
             config.cfg.__dict__['use_markdown'] = use_markdown == "on"
             config.cfg.__dict__['processor_autosave'] = processor_autosave == "on"
             
@@ -295,7 +297,8 @@ async def list_epub_files():
     try:
         patterns = [
             os.path.join(config.PATH_OUT, "*.epub"),
-            os.path.join(config.PATH_OUT, "*.html")
+            os.path.join(config.PATH_OUT, "*.html"),
+            os.path.join(config.PATH_OUT, "*.md")
         ]
         
         file_paths = []
@@ -317,7 +320,7 @@ async def list_epub_files():
 
 @app.get("/download/{filename}")
 async def download_file(filename: str):
-    allowed_extensions = ('.epub', '.html')
+    allowed_extensions = ('.epub', '.html', '.md')
     if not filename.lower().endswith(allowed_extensions):
         return JSONResponse({"error": "Only EPUB and HTML files can be downloaded"}, status_code=400)
     

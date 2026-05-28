@@ -85,6 +85,7 @@ class Configuration:
         self.batch_jobs = False
         self.force_redo = False
         self.publish_only = False
+        self.publish_markdown = True
         self.use_markdown = True
         self.translate_heading = True
         self.ce_start = 0

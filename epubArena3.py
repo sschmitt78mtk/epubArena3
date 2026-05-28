@@ -98,6 +98,15 @@ def main(ePubFilename: str) -> None:
         publishHTML.genEPUB(estore.getTranslationByModelName(Step2TName)) # die letzte Übersetzung/Summary publizieren
     except Exception as e:
         log.error(f'genEPUB konnte nicht gespeichert werden: {ePubFilename}, {str(e)}')
+    if config.cfg.publish_markdown:
+        try:
+            publishHTML.genMD(estore.getTranslationByModelName(Step2TName))
+        except Exception as e:
+            log.error(f'genMD konnte nicht gespeichert werden: {ePubFilename}, {str(e)}')
+        try:
+            publishHTML.genMD(estore.source, newfilename=f'{ePubFilename}(source).md')
+        except Exception as e:
+            log.error(f'genMD source konnte nicht gespeichert werden: {ePubFilename}, {str(e)}')
     
     estore.save()
     estore.info()
