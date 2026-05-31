@@ -22,6 +22,7 @@ import config
 import errorLog
 import epubArena3
 import store
+import md2epub
 from prompts import Promptset, load_promptsets, save_promptsets
 from prompt_api import router as prompt_router
 from api_configs import router as api_configs_router
@@ -96,21 +97,56 @@ async def upload_file(
 ):
     if not file.filename:
         return JSONResponse({"error": "Keine Datei ausgewählt"}, status_code=400)
-    
-    file_path = config.PATH_INP / file.filename
-    if str(file_path).endswith('epub'):
-        # Save uploaded file
-        content = await file.read()
+
+    content = await file.read()
+    filename = file.filename
+    file_path = config.PATH_INP / filename
+
+    if filename.lower().endswith('.epub'):
+        # Save uploaded epub file
         with open(file_path, "wb") as f:
             f.write(content)
-        
+
         state.statustext = f"Datei {file_path} erfolgreich hochgeladen"
-        config.cfg.gePubFilename = str(file.filename)
-        estoreinfo = store.loadstore(str(file.filename))
+        config.cfg.gePubFilename = filename
+        estoreinfo = store.loadstore(filename)
         errorLog.log.printlog(f'Info: {estoreinfo.info()}')
+
+    elif filename.lower().endswith('.md'):
+        # Save markdown file, then auto-convert to EPUB
+        with open(file_path, "wb") as f:
+            f.write(content)
+
+        # Build output epub filename: <name>(MD).epub
+        base = os.path.splitext(filename)[0]
+        epub_filename = f"{base}(MD).epub"
+        epub_path = config.PATH_INP / epub_filename
+
+        try:
+            md2epub.md2epub(
+                input_path=str(file_path),
+                output_path=str(epub_path),
+                title=base,
+                author="Unknown",
+            )
+            config.cfg.gePubFilename = epub_filename
+            state.statustext = (
+                f"Markdown konvertiert: {filename} → {epub_filename}"
+            )
+            errorLog.log.printlog(
+                f"Converted {filename} to {epub_filename}"
+            )
+        except Exception as e:
+            state.statustext = (
+                f"Fehler bei Konvertierung von {filename}: {str(e)}"
+            )
+            errorLog.log.printlog(
+                f"Error converting {filename} to EPUB: {str(e)}"
+            )
+
     else:
-        state.statustext = "nicht gespeichert, nur .epub-Dateien können verarbeitet werden."
-    
+        state.statustext = "nicht gespeichert, nur .epub- und .md-Dateien werden unterstützt."
+
     return RedirectResponse(url="/", status_code=303)
 
 @app.get("/uploadfile")
