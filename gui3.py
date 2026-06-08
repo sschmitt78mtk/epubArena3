@@ -27,7 +27,14 @@ from prompts import Promptset, load_promptsets, save_promptsets
 from prompt_api import router as prompt_router
 from api_configs import router as api_configs_router
 
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
+
 app = FastAPI(title="epubArena 3 FastAPI")
+
+# Trust proxy headers (such as X-Forwarded-Proto and X-Forwarded-For) from any host.
+# This ensures that FastAPI is aware it is being accessed over HTTPS behind a reverse proxy (like Traefik)
+# and properly constructs secure redirect/URL schemes (https instead of http).
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 # Include prompt API router
 app.include_router(prompt_router)

@@ -51,4 +51,6 @@ COPY . .
 # Port deklarieren
 EXPOSE 8080
 
-CMD ["python", "gui3.py"]
+# Run uvicorn directly with proxy headers enabled, trusting the reverse proxy.
+# This ensures that FastAPI knows it is behind HTTPS and constructs URLs properly.
+CMD ["uvicorn", "gui3:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers", "--forwarded-allow-ips", "*"]

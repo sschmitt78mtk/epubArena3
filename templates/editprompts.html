@@ -203,7 +203,9 @@
     </div>
 
     <script>
-        const API_BASE = '/api/prompts';
+        // Changed API_BASE to have a trailing slash to prevent FastAPI/Starlette from performing a 307 redirect
+        // which can lead to mixed content (http vs https) issues behind reverse proxies.
+        const API_BASE = '/api/prompts/';
         let prompts = [];
 
         // DOM Elements
@@ -380,7 +382,8 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE}/${promptId}`, {
+                // Removed the extra slash because API_BASE now ends with a trailing slash
+                const response = await fetch(`${API_BASE}${promptId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(promptData)
@@ -404,7 +407,8 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE}/${promptId}`, {
+                // Removed the extra slash because API_BASE now ends with a trailing slash
+                const response = await fetch(`${API_BASE}${promptId}`, {
                     method: 'DELETE'
                 });
                 

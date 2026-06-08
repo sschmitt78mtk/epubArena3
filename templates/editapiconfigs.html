@@ -239,7 +239,9 @@
     </div>
 
     <script>
-        const API_BASE = '/api/configs';
+        // Changed API_BASE to have a trailing slash to prevent FastAPI/Starlette from performing a 307 redirect
+        // which can lead to mixed content (http vs https) issues behind reverse proxies.
+        const API_BASE = '/api/configs/';
         let configs = [];
 
         // DOM Elements
@@ -450,7 +452,8 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE}/${configId}`, {
+                // Removed the extra slash because API_BASE now ends with a trailing slash
+                const response = await fetch(`${API_BASE}${configId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(configData)
@@ -474,7 +477,8 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE}/${configId}`, {
+                // Removed the extra slash because API_BASE now ends with a trailing slash
+                const response = await fetch(`${API_BASE}${configId}`, {
                     method: 'DELETE'
                 });
                 
