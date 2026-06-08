@@ -1,0 +1,36 @@
+services:
+  web:
+    image: epubarena3:latest
+    container_name: epubarena3
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # makes host reachable as host.docker.internal (Linux)
+    environment:
+      DATA_DIR: /data
+      # Point local LLM calls to the host machine instead of the container loopback.
+      # Adjust the port if your LM Studio / local LLM server uses a different one.
+      LOCAL_LLM_BASE_URL: "http://host.docker.internal:5005/v1"
+    volumes:
+      - ./data:/data # docker compose --project-directory /home/userxyz/epubarenadata
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      # Router
+      - "traefik.http.routers.epubarena3.rule=Host(`epubarena3.abc.de`)"
+      - "traefik.http.routers.epubarena3.entrypoints=websecure"
+      - "traefik.http.routers.epubarena3.tls=true"
+      - "traefik.http.routers.epubarena3.tls.certresolver=le"
+      # Basic Auth middleware
+      - "traefik.http.routers.epubarena3.middlewares=epubarena3-auth"
+      # htpasswd -nbB user1 yourpassword
+      # Edit the `REPLACE_WITH_BCRYPT_HASH` placeholder in `docker-compose-vps.yml`__ with that full output
+      # espcap all $ signs -> $$.
+      - "traefik.http.middlewares.epubarena3-auth.basicauth.users=REPLACE_WITH_BCRYPT_HASH"
+      # Service (internal port 8080)
+      - "traefik.http.services.epubarena3.loadbalancer.server.port=8080"
+
+networks:
+  proxy:
+    external: true
