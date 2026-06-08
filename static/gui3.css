@@ -207,10 +207,13 @@ html, body {
     justify-content: space-between;
     align-items: center;
     padding: 14px 20px;
-    max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     border-bottom: 1px solid var(--border);
-    background: #fff;
+    box-sizing: border-box;
+    background: #33a3bf;
+    background: #bf7e33;
+    background: #daebef;
     box-shadow: 0 1px 3px rgba(0,0,0,.04);
 }
 .site-header .logo {
@@ -218,10 +221,13 @@ html, body {
     font-size: 20px;
 }
 .site-header .site-nav a {
-    margin-left: 14px;
+    margin: 14px;
+    padding: 3px;
+    background: #f1f6f7;
     color: var(--text);
     text-decoration: none;
 }
+
 .site-header .site-nav a:hover { text-decoration: underline; }
 
 /* Page container uses a fixed-width, desktop-first grid */
