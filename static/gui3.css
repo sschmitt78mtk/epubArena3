@@ -232,6 +232,16 @@ html, body {
 
 /* Page container uses a fixed-width, desktop-first grid */
 
+#main-content {
+    display: flex;
+    gap: 5px;
+    margin-top: 20px;
+    width: 100%;
+    /* max-width: 1200px; */
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #topleft {
     flex: 1;
     box-sizing: border-box;
@@ -240,32 +250,6 @@ html, body {
     background: #fff;
     border-radius: 8px;
     box-shadow: var(--shadow);
-}
-
-#main-content {
-    display: flex;
-    gap: 24px;
-    margin-top: 20px;
-    max-width: 1200px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-#cinema-area {
-    flex: 1 1 50%;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-#cinema1, #cinema2 {
-    width: 98%;
-    margin: 10px auto;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    padding: 12px;
 }
 
 #topright {
@@ -280,6 +264,28 @@ html, body {
     flex-direction: column;
     max-height: 100%;
     overflow: hidden;
+}
+
+/* #cinema-area {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+} */
+
+#cinema1, #cinema2 {
+    width: 98%;
+    margin: 10px auto;
+    background: #fff;
+    background: #b94a4a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 12px;
+}
+
+#cinema2 {
+    background: #578782;
 }
 
 #logfileinfodiv {

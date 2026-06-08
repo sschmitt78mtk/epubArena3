@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>epubArena 3</title>
+    <title>epubArena 3  - {{ gePubFilename }}</title>
     <link rel="shortcut icon" href="#" />
     <link rel="stylesheet" href="{{ url_for('static',filename='gui3.css') }}">
     <style></style>
@@ -146,10 +146,10 @@
         </nav>
     </div>
     <form method="POST">
-        <div class="container">
+        <div class="container" id="main-content">
             <div id="topleft" class="card">
                 <div class="form-row">
-                    <label class="description">epub filename: {{ gePubFilename }}</label>
+                    <label class="description">epub filename: <b>{{ gePubFilename }}</b></label>
                 </div>
                 <hr>
                 <div class="form-row">
@@ -235,58 +235,58 @@
             <div id="topright">
                 <div id="logfileinfodiv"><p id="logfileinfo"></p></div>
             </div>
-	</div>
-    <div id="cinema1">
+        </div>
+        
+        <div id="cinema1">
 
-        <a href="{{ url_for('edit_prompts') }}">edit prompts</a>
+            <a href="{{ url_for('edit_prompts') }}">edit prompts</a>
 
-        <!-- Tabelle mit Textareas -->
-        <table width="100%" cellspacing="2" cellpadding="2" border="1">
-            <tr>
-                <th>active</th>
-                <th>Nr</th>
-                <th>System Prompt</th>
-                <th>Pre-Prompt</th>
-                <th>Post-Prompt</th>
-                <th>Info</th>
-                <th>maxToken</th>
-                <th>Temp</th>
-                <th>allow<br>long answer</th>
-            </tr>
-            <tr>
-                <td><input type="checkbox" name="use_summary" id="use_summary" checked></td>
-                <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_1" name="promptno_1" value="55" readonly>
-                    <button type="button" onclick="prev(1)">↑</button>
-                    <button type="button" onclick="next(1)">↓</button>
-                </td>
-                <td><textarea class="promptinput readonly" id="system_prompt_1" name="system_prompt_1" rows="3" readonly>system_prompt_1</textarea></td>
-                <td><textarea class="promptinput readonly" id="pre_prompt_1" name="pre_prompt_1" rows="3" readonly>pre_prompt_1</textarea></td>
-                <td><textarea class="promptinput readonly" id="post_prompt_1" name="post_prompt_1" rows="3" readonly>post_prompt_1</textarea></td>
-                <td><textarea class="promptinput readonly" id="info_prompt_1" name="info_prompt_1" rows="3" readonly>info_prompt_1</textarea></td>
-                <td><input type="number" class="numberinput readonly" name="maxnewtoken_1" id="maxnewtoken_1" value="999" min="0" readonly></td>
-                <td><input type="number" class="numberinput readonly" name="temp_1" id="temp_1" value="0.1" min="0" max="5" step="0.1" readonly></td>
-                <td><input type="checkbox" name="allow_long_answer_1" id="allow_long_answer_1" checked readonly></td>
-            </tr>
-            <tr>
-                <td><input type="checkbox" name="use_translation" id="use_translation" checked></td>
-                <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_2" name="promptno_2" value="199" readonly>
-                    <button type="button" onclick="prev(2)">↑</button>
-                    <button type="button" onclick="next(2)">↓</button>
-                </td>
-                <td><textarea class="promptinput readonly" id="system_prompt_2" name="system_prompt_2" rows="3" readonly>system_prompt_2</textarea></td>
-                <td><textarea class="promptinput readonly" id="pre_prompt_2" name="pre_prompt_2" rows="3" readonly>pre_prompt_2</textarea></td>
-                <td><textarea class="promptinput readonly" id="post_prompt_2" name="post_prompt_2" rows="3" readonly>post_prompt_2</textarea></td>
-                <td><textarea class="promptinput readonly" id="info_prompt_2" name="info_prompt_2" rows="3" readonly>info_prompt_2</textarea></td>
-                <td class="narrowtd"><input type="number" class="numberinput readonly" name="maxnewtoken_2" id="maxnewtoken_2" value="998" min="0" readonly></td>
-                <td class="narrowtd"><input type="number" class="numberinput readonly" name="temp_2" id="temp_2" value="0.2" min="0" max="5" step="0.1" readonly></td>
-                <td class="narrowtd"><input type="checkbox" name="allow_long_answer_2" id="allow_long_answer_2" checked readonly</td>
-            </tr>
-
-        </table>
+            <!-- Tabelle mit Textareas -->
+            <table width="100%" cellspacing="2" cellpadding="2" border="1">
+                <tr>
+                    <th>active</th>
+                    <th>Nr</th>
+                    <th>System Prompt</th>
+                    <th>Pre-Prompt</th>
+                    <th>Post-Prompt</th>
+                    <th>Info</th>
+                    <th>maxToken</th>
+                    <th>Temp</th>
+                    <th>allow<br>long answer</th>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="use_summary" id="use_summary" checked></td>
+                    <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_1" name="promptno_1" value="55" readonly>
+                        <button type="button" onclick="prev(1)">↑</button>
+                        <button type="button" onclick="next(1)">↓</button>
+                    </td>
+                    <td><textarea class="promptinput readonly" id="system_prompt_1" name="system_prompt_1" rows="3" readonly>system_prompt_1</textarea></td>
+                    <td><textarea class="promptinput readonly" id="pre_prompt_1" name="pre_prompt_1" rows="3" readonly>pre_prompt_1</textarea></td>
+                    <td><textarea class="promptinput readonly" id="post_prompt_1" name="post_prompt_1" rows="3" readonly>post_prompt_1</textarea></td>
+                    <td><textarea class="promptinput readonly" id="info_prompt_1" name="info_prompt_1" rows="3" readonly>info_prompt_1</textarea></td>
+                    <td><input type="number" class="numberinput readonly" name="maxnewtoken_1" id="maxnewtoken_1" value="999" min="0" readonly></td>
+                    <td><input type="number" class="numberinput readonly" name="temp_1" id="temp_1" value="0.1" min="0" max="5" step="0.1" readonly></td>
+                    <td><input type="checkbox" name="allow_long_answer_1" id="allow_long_answer_1" checked readonly></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" name="use_translation" id="use_translation" checked></td>
+                    <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_2" name="promptno_2" value="199" readonly>
+                        <button type="button" onclick="prev(2)">↑</button>
+                        <button type="button" onclick="next(2)">↓</button>
+                    </td>
+                    <td><textarea class="promptinput readonly" id="system_prompt_2" name="system_prompt_2" rows="3" readonly>system_prompt_2</textarea></td>
+                    <td><textarea class="promptinput readonly" id="pre_prompt_2" name="pre_prompt_2" rows="3" readonly>pre_prompt_2</textarea></td>
+                    <td><textarea class="promptinput readonly" id="post_prompt_2" name="post_prompt_2" rows="3" readonly>post_prompt_2</textarea></td>
+                    <td><textarea class="promptinput readonly" id="info_prompt_2" name="info_prompt_2" rows="3" readonly>info_prompt_2</textarea></td>
+                    <td class="narrowtd"><input type="number" class="numberinput readonly" name="maxnewtoken_2" id="maxnewtoken_2" value="998" min="0" readonly></td>
+                    <td class="narrowtd"><input type="number" class="numberinput readonly" name="temp_2" id="temp_2" value="0.2" min="0" max="5" step="0.1" readonly></td>
+                    <td class="narrowtd"><input type="checkbox" name="allow_long_answer_2" id="allow_long_answer_2" checked readonly</td>
+                </tr>
+            </table>
         </div>
         <div id="cinema2">
-        <br>
-        <button class="startstopbutton" type="submit" name="start" value="1">START</button>
+            <button class="startstopbutton" type="submit" name="start" value="1">START</button>
+        </div>
     </form>
     <form method="POST">
         <button class="startstopbutton" type="submit" name="stop" value="1">STOP</button>
