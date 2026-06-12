@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <title>epubArena 3  - {{ gePubFilename }}</title>
     <link rel="shortcut icon" href="#" />
-    <link rel="stylesheet" href="{{ url_for('static',filename='gui3.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='gui3.css?v=1') }}">
     <style></style>
     <script>
         let logfileinfo_old = '';
@@ -67,8 +67,9 @@
                     break;
                 }
             }
-            // PromptID
+            // PromptID (hidden input for form submission + display span)
             document.getElementById(`promptno_${SumTran}`).value = prompt_json[epromptno].PromptID
+            document.getElementById(`promptno_${SumTran}_display`).textContent = prompt_json[epromptno].PromptID
             // System Prompt
             document.getElementById(`system_prompt_${SumTran}`).innerText = prompt_json[epromptno].system_message
             // Pre prompt
@@ -77,14 +78,9 @@
             document.getElementById(`post_prompt_${SumTran}`).innerText = prompt_json[epromptno].postPrompt
             // Info
             document.getElementById(`info_prompt_${SumTran}`).innerText = prompt_json[epromptno].infostr
-            // Max new token
-            document.getElementById(`maxnewtoken_${SumTran}`).value = prompt_json[epromptno].maxNewToken
-            // Temperature
-            document.getElementById(`temp_${SumTran}`).value = prompt_json[epromptno].temperature
-            // [Unused] - Top P
-            // document.getElementById(`top_p_${SumTran}`).value = prompt_json[epromptno].top_p
-            // Allowing long answers
-            document.getElementById(`allow_long_answer_${SumTran}`).checked = prompt_json[epromptno].allowLongAnswer
+            // Parameters (combined text display)
+            document.getElementById(`params_${SumTran}`).innerHTML =
+                `maxToken=${prompt_json[epromptno].maxNewToken}<br>Temp=${prompt_json[epromptno].temperature}<br>long answer=${prompt_json[epromptno].allowLongAnswer}`
         }
 
         async function loadAPIConfigOptions() {
@@ -244,54 +240,55 @@
             <!-- Tabelle mit Textareas -->
             <table width="100%" cellspacing="2" cellpadding="2" border="1">
                 <tr>
-                    <th>active</th>
+                    <th>use</th>
                     <th>Nr</th>
                     <th>System Prompt</th>
                     <th>Pre-Prompt</th>
                     <th>Post-Prompt</th>
                     <th>Info</th>
-                    <th>maxToken</th>
-                    <th>Temp</th>
-                    <th>allow<br>long answer</th>
+                    <th>Parameters</th>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" name="use_summary" id="use_summary" checked></td>
-                    <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_1" name="promptno_1" value="55" readonly>
-                        <button type="button" onclick="prev(1)">↑</button>
-                        <button type="button" onclick="next(1)">↓</button>
+                    <td class="narrowtd"><input type="checkbox" name="use_summary" id="use_summary" checked></td>
+                    <td class="narrowtd">
+                        <span id="promptno_1_display" class="promptno-display">55</span><br>
+                        <button type="button" class="nav-btn" onclick="prev(1)">↑</button>
+                        <button type="button" class="nav-btn" onclick="next(1)">↓</button>
+                        <!-- DO NOT REMOVE: hidden input needed for form submission (backend reads promptno_1) -->
+                        <input type="hidden" name="promptno_1" id="promptno_1" value="55">
                     </td>
                     <td><textarea class="promptinput readonly" id="system_prompt_1" name="system_prompt_1" rows="3" readonly>system_prompt_1</textarea></td>
                     <td><textarea class="promptinput readonly" id="pre_prompt_1" name="pre_prompt_1" rows="3" readonly>pre_prompt_1</textarea></td>
                     <td><textarea class="promptinput readonly" id="post_prompt_1" name="post_prompt_1" rows="3" readonly>post_prompt_1</textarea></td>
                     <td><textarea class="promptinput readonly" id="info_prompt_1" name="info_prompt_1" rows="3" readonly>info_prompt_1</textarea></td>
-                    <td><input type="number" class="numberinput readonly" name="maxnewtoken_1" id="maxnewtoken_1" value="999" min="0" readonly></td>
-                    <td><input type="number" class="numberinput readonly" name="temp_1" id="temp_1" value="0.1" min="0" max="5" step="0.1" readonly></td>
-                    <td><input type="checkbox" name="allow_long_answer_1" id="allow_long_answer_1" checked readonly></td>
+                    <td><span id="params_1" class="params-text"></span></td>
                 </tr>
                 <tr>
-                    <td><input type="checkbox" name="use_translation" id="use_translation" checked></td>
-                    <td class="narrowtd">No_<input class="numberinput" type="text" id="promptno_2" name="promptno_2" value="199" readonly>
-                        <button type="button" onclick="prev(2)">↑</button>
-                        <button type="button" onclick="next(2)">↓</button>
+                    <td class="narrowtd"><input type="checkbox" name="use_translation" id="use_translation" checked></td>
+                    <td class="narrowtd">
+                        <span id="promptno_2_display" class="promptno-display">199</span><br>
+                        <button type="button" class="nav-btn" onclick="prev(2)">↑</button>
+                        <button type="button" class="nav-btn" onclick="next(2)">↓</button>
+                        <!-- DO NOT REMOVE: hidden input needed for form submission (backend reads promptno_2) -->
+                        <input type="hidden" name="promptno_2" id="promptno_2" value="199">
                     </td>
                     <td><textarea class="promptinput readonly" id="system_prompt_2" name="system_prompt_2" rows="3" readonly>system_prompt_2</textarea></td>
                     <td><textarea class="promptinput readonly" id="pre_prompt_2" name="pre_prompt_2" rows="3" readonly>pre_prompt_2</textarea></td>
                     <td><textarea class="promptinput readonly" id="post_prompt_2" name="post_prompt_2" rows="3" readonly>post_prompt_2</textarea></td>
                     <td><textarea class="promptinput readonly" id="info_prompt_2" name="info_prompt_2" rows="3" readonly>info_prompt_2</textarea></td>
-                    <td class="narrowtd"><input type="number" class="numberinput readonly" name="maxnewtoken_2" id="maxnewtoken_2" value="998" min="0" readonly></td>
-                    <td class="narrowtd"><input type="number" class="numberinput readonly" name="temp_2" id="temp_2" value="0.2" min="0" max="5" step="0.1" readonly></td>
-                    <td class="narrowtd"><input type="checkbox" name="allow_long_answer_2" id="allow_long_answer_2" checked readonly</td>
+                    <td><span id="params_2" class="params-text"></span></td>
                 </tr>
             </table>
         </div>
         <div id="cinema2">
             <button class="startstopbutton" type="submit" name="start" value="1">START</button>
+        </form>
+        <form method="POST">
+            <button class="startstopbutton" type="submit" name="stop" value="1">STOP</button>
+        </form>
         </div>
-    </form>
-    <form method="POST">
-        <button class="startstopbutton" type="submit" name="stop" value="1">STOP</button>
-    </form>
-    <form method="POST" onsubmit="return confirmDelete()">
+    </div>
+    <form class="deleteform" method="POST" onsubmit="return confirmDelete()">
         <br>
         <label class="description" for="modeltodelete">translation modelname to delete:</label>
         <input type="text" class="modeltodelete" id="modeltodelete" name="modeltodelete" value="{{modeltodelete}}"><br>

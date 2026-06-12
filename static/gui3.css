@@ -1,6 +1,6 @@
-.startstopbutton {
+/* .startstopbutton {
     width: 49%;
-}
+} */
 
 #messages,
 #logfileinfo {
@@ -47,6 +47,7 @@
     width: 100%;
     max-width: 40ch;
     padding: 2px 4px;
+    box-sizing: border-box;
 }
 
 .align-right {
@@ -74,7 +75,18 @@
 }
 
 .narrowtd {
-    width: 10ch;
+    width: 4ch;
+    text-align: center;
+    vertical-align: top;
+}
+
+.promptno-display {
+    font-weight: bold;
+}
+
+.nav-btn {
+    padding: 0 2px;
+    line-height: 1;
 }
 
 .readonly {
@@ -122,7 +134,7 @@
 }
 
 #downloads-list {
-    max-height: 300px;
+    /* max-height: 300px; */
     overflow-y: auto;
     border: 1px solid #ddd;
     background-color: white;
@@ -152,6 +164,8 @@
 
 .download-item .fileinfo {
     flex: 1;
+    max-width: 30ch;
+    background-color: bisque;
     color: #666;
     font-size: 12px;
     margin-right: 10px;
@@ -250,6 +264,7 @@ html, body {
     background: #fff;
     border-radius: 8px;
     box-shadow: var(--shadow);
+    margin-bottom: 0;
 }
 
 #topright {
@@ -277,7 +292,8 @@ html, body {
     width: 98%;
     margin: 10px auto;
     background: #fff;
-    background: #b94a4a;
+    /* background: #b94a4a;
+    background: #daebef; */
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: var(--shadow);
@@ -285,7 +301,41 @@ html, body {
 }
 
 #cinema2 {
-    background: #578782;
+    display: flex;
+    justify-content: space-between;
+    /* align-items: center; */
+    /* background: #578782;
+    background: #daebef; */
+}
+
+#cinema2 button {
+    flex: 1 1 20ch;
+    max-width: 70ch;
+    background-color: rgb(148, 207, 148);
+}
+
+#cinema2 form {
+    flex: 1 1 20ch;
+    max-width: 70ch;
+    display: flex;
+}
+
+#cinema2 form button {
+    width: 100%;
+    max-width: none;
+    background-color: rgb(210, 136, 136);
+}
+
+.deleteform {
+    display: flex;
+    gap: 5px;
+    width: 98%;
+    margin: 10px auto;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 12px;
 }
 
 #logfileinfodiv {
@@ -299,4 +349,9 @@ html, body {
 #logfileinfo {
     flex-grow: 1;
     min-height: 0;
+}
+
+.params-text {
+    font-size: 0.65rem;
+    line-height: 1.4;
 }
