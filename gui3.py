@@ -71,12 +71,12 @@ def url_for(endpoint: str, **kwargs):
 templates.env.globals['url_for'] = url_for
 
 # Global state
-statustext = 'Warten auf Datei'
+statustext = 'Waiting for file'
 
 # Application state
 class AppState:
     def __init__(self):
-        self.statustext = 'Warten auf Datei'
+        self.statustext = 'Waiting for file'
         self.config = config.cfg
 
 app_state = AppState()
@@ -103,7 +103,7 @@ async def upload_file(
     state: AppState = Depends(get_app_state)
 ):
     if not file.filename:
-        return JSONResponse({"error": "Keine Datei ausgewählt"}, status_code=400)
+        return JSONResponse({"error": "No file selected"}, status_code=400)
 
     content = await file.read()
     filename = file.filename
@@ -114,7 +114,7 @@ async def upload_file(
         with open(file_path, "wb") as f:
             f.write(content)
 
-        state.statustext = f"Datei {file_path} erfolgreich hochgeladen"
+        state.statustext = f"File {file_path} successfully uploaded"
         config.cfg.gePubFilename = filename
         estoreinfo = store.loadstore(filename)
         errorLog.log.printlog(f'Info: {estoreinfo.info()}')
@@ -138,21 +138,21 @@ async def upload_file(
             )
             config.cfg.gePubFilename = epub_filename
             state.statustext = (
-                f"Markdown konvertiert: {filename} → {epub_filename}"
+                f"Markdown converted: {filename} → {epub_filename}"
             )
             errorLog.log.printlog(
                 f"Converted {filename} to {epub_filename}"
             )
         except Exception as e:
             state.statustext = (
-                f"Fehler bei Konvertierung von {filename}: {str(e)}"
+                f"Error converting {filename}: {str(e)}"
             )
             errorLog.log.printlog(
                 f"Error converting {filename} to EPUB: {str(e)}"
             )
 
     else:
-        state.statustext = "nicht gespeichert, nur .epub- und .md-Dateien werden unterstützt."
+        state.statustext = "not saved, only .epub and .md files are supported."
 
     return RedirectResponse(url="/", status_code=303)
 
@@ -245,9 +245,9 @@ async def index_post(
                 config.cfg.max_concurrent_calls = int(max_concurrent_calls) if max_concurrent_calls != "" else 4
 
             if not config.cfg.batch_jobs and not config.cfg.gePubFilename:
-                Errors = '\nkein ePub ausgewählt (und kein batchJobs angehakt)\n'
+                Errors = '\nNo ePub selected (and no batchJobs checked)\n'
             if config.cfg.gePubFilename and not config.cfg.gePubFilename.endswith('.epub'):
-                Errors = '\nkein ePub ausgewählt (nur .epub können verarbeitet werden)\n'
+                Errors = '\nNo ePub selected (only .epub files can be processed)\n'
             
             if Errors == '':
                 config.cfg.update_main()
@@ -257,22 +257,22 @@ async def index_post(
                 save_lastConfig()
                 asyncio.create_task(asyncio.to_thread(epubArena3.run))
             else:
-                errorLog.log.printlog(f'KEIN Start weil: {Errors}')
+                errorLog.log.printlog(f'NO START because: {Errors}')
     
     elif stop is not None:
         config.continue_process = False
-        errorLog.log.printlog('Web: Stop (aktueller chunk wird noch beendet)')
+        errorLog.log.printlog('Web: Stop (current chunk will still be finished)')
     
     elif delete is not None:
         modelname2delete = modeltodelete or ""
-        errorLog.log.printlog(f'Web: Versuche Löschen der Translation mit Name "{modelname2delete}"')
+        errorLog.log.printlog(f'Web: Trying to delete translation with name "{modelname2delete}"')
         try:
             estoreinfo = store.loadstore(config.cfg.gePubFilename)
             estoreinfo.removeTranslationsByName(modelname2delete)
             errorLog.log.printlog(f'Info: {estoreinfo.info()}')
             estoreinfo.save()
         except Exception as e:
-            errorLog.log.printlog(f'Web: Translation mit Name "{modelname2delete}" konnte nicht gelöscht werden. {str(e)}')
+            errorLog.log.printlog(f'Web: Translation with name "{modelname2delete}" could not be deleted. {str(e)}')
     
     # Return to main page
     return templates.TemplateResponse("gui3.html", {
@@ -378,20 +378,20 @@ def load_lastConfig() -> None:
     try:
         with open(pklFilename, 'rb') as f:
             config.cfg = pickle.load(f)
-        errorLog.log.printlog(f'Daten aus PKL-Datei {pklFilename} geladen.')
+        errorLog.log.printlog(f'Data loaded from PKL file {pklFilename}.')
         estoreinfo = store.loadstore(config.cfg.gePubFilename)
         estoreinfo.info()
     except Exception as exc:
-        errorLog.log.printlog(f'{pklFilename} konnte nicht geladen werden. {str(exc)}')
+        errorLog.log.printlog(f'{pklFilename} could not be loaded. {str(exc)}')
 
 def save_lastConfig() -> None:
     pklFilename = config.PATH_PKL / 'laststate.pkl'
     try:
         with open(pklFilename, 'wb') as f:
             pickle.dump(config.cfg, f)
-        errorLog.log.printlog(f'Status in PKL-Datei {pklFilename} gespeichert.')
+        errorLog.log.printlog(f'Status saved in PKL file {pklFilename}.')
     except Exception as exc:
-        errorLog.log.printlog(f'{pklFilename} konnte nicht gespeichert werden. {str(exc)}')
+        errorLog.log.printlog(f'{pklFilename} could not be saved. {str(exc)}')
 
 if __name__ == '__main__':
     load_lastConfig()

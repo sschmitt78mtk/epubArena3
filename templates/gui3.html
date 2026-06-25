@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -17,14 +17,14 @@
                 .then(data => {
                     text2show = (data.log_last_10_lines); // .replace('<br/>','\r\n');
                     let logfileinfo = document.getElementById("logfileinfo");
-                    if (!logfileinfo.matches(':hover')) { // nur aktualisieren, wenn man nicht gerade darin scrollt
+                    if (!logfileinfo.matches(':hover')) { // only update if not currently scrolling
                         logfileinfo.innerHTML  = text2show;
                         logfileinfo_old = text2show;
                         logfileinfo.scrollTop = logfileinfo.scrollHeight;
                         logfileinfo.style.backgroundColor = "#f9f9f9"; 
                     } else {
                         if (logfileinfo_old !== text2show) {
-                            logfileinfo.style.backgroundColor = "#ffffcc"; // Gelb
+                            logfileinfo.style.backgroundColor = "#ffffcc"; // yellow
                         }   
                     }
                 });
@@ -44,7 +44,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    // console.log('Prompt-Daten erhalten:', data);
+                    // console.log('Prompt data received:', data);
                     prompt_json = data.prompts;
                     promptlength = data.count;
                     activePrompt1 = data.activePrompt1;
@@ -53,7 +53,7 @@
                     setprompt(2, activePrompt2)
                 })
                 .catch(error => {
-                    console.error('Fetch-Fehler:', error);
+                    console.error('Fetch error:', error);
                 });
         }
 
@@ -123,7 +123,7 @@
             document.getElementById('modelname').value = config.modelname || '';
         }
 
-        // verhindert erneutes Senden des Form bei Neuladen
+        // prevents resubmission of form on reload
         if (window.history.replaceState) {
             window.history.replaceState(null, null, window.location.href);
         };
@@ -237,7 +237,7 @@
 
             <a href="{{ url_for('edit_prompts') }}">edit prompts</a>
 
-            <!-- Tabelle mit Textareas -->
+            <!-- Table with textareas -->
             <table width="100%" cellspacing="2" cellpadding="2" border="1">
                 <tr>
                     <th>use</th>
@@ -301,7 +301,7 @@
         <h3>EPUB downloads</h3>
         <button type="button" onclick="refreshDownloads()" class="refresh-button">refresh list</button>
         <div id="downloads-list">
-            <p>Lade EPUB-Dateien...</p>
+            <p>Loading EPUB files...</p>
         </div>
     </div>
     
@@ -333,7 +333,7 @@
         }
 
         function confirmDelete() {
-            return confirm("Die Übersetzung wirklich löschen?");
+            return confirm("Really delete the translation?");
         }
 
         // EPUB Download Functions
@@ -345,7 +345,7 @@
                     downloadsList.innerHTML = "";
                     
                     if (data.files.length === 0) {
-                        downloadsList.innerHTML = "<p>Keine EPUB-Dateien verfügbar.</p>";
+                        downloadsList.innerHTML = "<p>No EPUB files available.</p>";
                         return;
                     }
                     
@@ -365,7 +365,7 @@
                 })
                 .catch(error => {
                     console.error("Error fetching EPUB files:", error);
-                    document.getElementById("downloads-list").innerHTML = "<p>Fehler beim Laden der Dateiliste.</p>";
+                    document.getElementById("downloads-list").innerHTML = "<p>Error loading file list.</p>";
                 });
         }
 
@@ -377,7 +377,7 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
         }
 
-        setInterval(updateMessages, 2000); // Nachrichten alle 2 Sekunden abrufen
+        setInterval(updateMessages, 2000); // Fetch messages every 2 seconds
         getPrompts();
         loadAPIConfigOptions();
         refreshDownloads(); // Load EPUB files on page load

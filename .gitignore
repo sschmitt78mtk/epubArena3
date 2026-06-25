@@ -10,3 +10,4 @@ pkl/
 __pycache__/
 api_configs.json
 prompts.json
+*.tar
