@@ -43,6 +43,15 @@ class Llmcaller: # pylint: disable=unused-variable
             }
         return None  # OpenAI and others: send nothing (unknown params cause 400 errors)
 
+    def _get_max_tokens_param_name(self) -> str:
+        """Return the correct max-tokens parameter name for the provider.
+        OpenAI gpt-5.x and DeepSeek require 'max_completion_tokens'.
+        Local LM Studio / llama.cpp use 'max_tokens'."""
+        url_lower = self.api_base_url.lower()
+        if "api.openai.com" in url_lower or "deepseek" in url_lower:
+            return "max_completion_tokens"
+        return "max_tokens"
+
     async def request_async(self, instructtext: str, activepromptset: Promptset | None, max_tokenoverride=0) -> str | None:
         """Async version of request method for parallel processing"""
         if self.simulate:
@@ -65,7 +74,7 @@ class Llmcaller: # pylint: disable=unused-variable
                 "seed": self.seed,
                 "temperature": activepromptset.temperature,
                 "top_p": activepromptset.top_p,
-                "max_tokens": max_tokenoverride if max_tokenoverride > 0 else activepromptset.maxNewToken,
+                self._get_max_tokens_param_name(): max_tokenoverride if max_tokenoverride > 0 else activepromptset.maxNewToken,
             }
             extra = self._get_disable_thinking_extra_body()
             if extra is not None:
