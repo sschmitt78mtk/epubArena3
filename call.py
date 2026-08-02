@@ -31,6 +31,18 @@ class Llmcaller: # pylint: disable=unused-variable
                     timeout=config.cfg.api_timeout
                 )
     
+    def _get_disable_thinking_extra_body(self) -> dict | None:
+        """Return provider-specific extra_body to disable thinking mode, or None if not needed."""
+        url_lower = self.api_base_url.lower()
+        if "deepseek" in url_lower:
+            return {"thinking": {"type": "disabled"}}
+        if any(local in url_lower for local in ("127.0.0.1", "localhost", "host.docker.internal")):
+            return {
+                "enable_thinking": False,
+                "chat_template_kwargs": {"enable_thinking": False},
+            }
+        return None  # OpenAI and others: send nothing (unknown params cause 400 errors)
+
     async def request_async(self, instructtext: str, activepromptset: Promptset | None, max_tokenoverride=0) -> str | None:
         """Async version of request method for parallel processing"""
         if self.simulate:
@@ -43,22 +55,27 @@ class Llmcaller: # pylint: disable=unused-variable
         
         requesttext = activepromptset.prePrompt + instructtext + activepromptset.postPrompt
         try:
-            response = await self.async_llm.chat.completions.create(
-                model=self.model,
-                messages=[
+            kwargs = {
+                "model": self.model,
+                "messages": [
                     {"role": "system", "content": activepromptset.system_message},
                     {"role": "user", "content": requesttext}
                 ],
-                stream=False,
-                seed=self.seed,
-                temperature=activepromptset.temperature,
-                top_p=activepromptset.top_p,
-                #extra_body={"thinking": {"type": "disabled"}}, # enabled/disabled
-                #extra_body={"enable_thinking": False},  # Reasoning-Mode deaktivieren
-                #extra_body={"chat_template_kwargs": {"enable_thinking": False}},
-                max_tokens=max_tokenoverride if max_tokenoverride > 0 else activepromptset.maxNewToken
-            )
+                "stream": False,
+                "seed": self.seed,
+                "temperature": activepromptset.temperature,
+                "top_p": activepromptset.top_p,
+                "max_tokens": max_tokenoverride if max_tokenoverride > 0 else activepromptset.maxNewToken,
+            }
+            extra = self._get_disable_thinking_extra_body()
+            if extra is not None:
+                kwargs["extra_body"] = extra
+
+            response = await self.async_llm.chat.completions.create(**kwargs)
             answer = response.choices[0].message.content
+            if not answer:
+                log.error('got Response, but Content was empty!')
+                return None
             return answer
         except Exception as e:
             log.error(f'Llmcaller request_async error {str(e)}')
