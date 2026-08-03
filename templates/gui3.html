@@ -81,6 +81,37 @@
             // Parameters (combined text display)
             document.getElementById(`params_${SumTran}`).innerHTML =
                 `maxToken=${prompt_json[epromptno].maxNewToken}<br>Temp=${prompt_json[epromptno].temperature}<br>long answer=${prompt_json[epromptno].allowLongAnswer}`
+            
+            // Check token warning after setting prompt (pass the current prompt number)
+            checkTokenWarning(promptno);
+        }
+
+        function checkTokenWarning(promptID) {
+            const chunkerMaxWords = parseInt(document.getElementById('chunker_maxwords').value) || 0;
+            const warningDiv = document.getElementById('token-warning');
+            
+            if (chunkerMaxWords <= 0 || promptlength === 0) {
+                warningDiv.style.display = 'none';
+                return;
+            }
+            
+            // Get maxNewToken from the specified prompt (or activePrompt2 if not specified)
+            const targetPromptID = promptID !== undefined ? promptID : activePrompt2;
+            let maxNewToken = 0;
+            for (var i = 0; i < promptlength; i++) {
+                if (prompt_json[i].PromptID == targetPromptID) {
+                    maxNewToken = prompt_json[i].maxNewToken;
+                    break;
+                }
+            }
+            
+            // Check if maxToken is less than 2 times maxwords
+            if (maxNewToken > 0 && maxNewToken < 2 * chunkerMaxWords) {
+                warningDiv.style.display = 'block';
+                warningDiv.innerHTML = `⚠️ Warning: maxToken (${maxNewToken}) may be insufficient for full translation (maxToken < 2 × maxwords (${chunkerMaxWords}))`;
+            } else {
+                warningDiv.style.display = 'none';
+            }
         }
 
         async function loadAPIConfigOptions() {
@@ -216,7 +247,7 @@
                 </div>
                 <div class="form-row">
                     <label for="chunker_maxwords" class="description">chunker_maxwords</label>
-                    <input type="number" class="numberinput" name="chunker_maxwords" id="chunker_maxwords" value="{{ chunker_maxwords }}" min="1">
+                    <input type="number" class="numberinput" name="chunker_maxwords" id="chunker_maxwords" value="{{ chunker_maxwords }}" min="1" oninput="checkTokenWarning()">
                 </div>
                 <div class="form-row">
                     <label for="api_timeout" class="description">API timeout (s)</label>
@@ -281,6 +312,7 @@
             </table>
         </div>
         <div id="cinema2">
+            <div id="token-warning" style="display: none;"></div>
             <button class="startstopbutton" type="submit" name="start" value="1">START</button>
         </form>
         <form method="POST">
