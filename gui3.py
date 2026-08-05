@@ -361,6 +361,61 @@ async def list_epub_files():
     
     return JSONResponse({"files": downloadable_files})
 
+@app.get("/list_input_files")
+async def list_input_files():
+    """List all epub files in the input directory"""
+    input_files = []
+    try:
+        patterns = [
+            os.path.join(config.PATH_INP, "*.epub"),
+            os.path.join(config.PATH_INP, "*.md")
+        ]
+        
+        file_paths = []
+        for pat in patterns:
+            file_paths.extend(glob.glob(pat))
+        
+        for file_path in sorted(file_paths):
+            filename = os.path.basename(file_path)
+            st = os.stat(file_path)
+            input_files.append({
+                "name": filename,
+                "size": st.st_size,
+                "modified": st.st_mtime,
+            })
+    except Exception as e:
+        errorLog.log.printlog(f"Error listing input files: {str(e)}")
+    
+    return JSONResponse({"files": input_files, "current_file": config.cfg.gePubFilename})
+
+@app.post("/select_file")
+async def select_file(
+    filename: str = Form(...),
+    state: AppState = Depends(get_app_state)
+):
+    """Select a previously uploaded file as the current input file"""
+    try:
+        file_path = config.PATH_INP / filename
+        
+        if not file_path.exists():
+            return JSONResponse({"error": "File not found"}, status_code=404)
+        
+        # Update config with selected file
+        config.cfg.gePubFilename = filename
+        state.statustext = f"File {filename} selected"
+        
+        # Load store info
+        estoreinfo = store.loadstore(filename)
+        errorLog.log.printlog(f'Info: {estoreinfo.info()}')
+        
+        # Save the config
+        save_lastConfig()
+        
+        return RedirectResponse(url="/", status_code=303)
+    except Exception as e:
+        errorLog.log.printlog(f"Error selecting file: {str(e)}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
 @app.get("/download/{filename}")
 async def download_file(filename: str):
     allowed_extensions = ('.epub', '.html', '.md')

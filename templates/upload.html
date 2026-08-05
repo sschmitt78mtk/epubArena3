@@ -4,12 +4,186 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload file</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .upload-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            width: 80vw;
+        }
+        .file-list-section {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        form {
+            margin-bottom: 15px;
+        }
+        input[type="file"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .refresh-button {
+            background-color: #2196F3;
+            margin-bottom: 15px;
+        }
+        .refresh-button:hover {
+            background-color: #0b7dda;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            background: white;
+        }
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .file-item.current {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+        }
+        .file-info {
+            flex: 1;
+        }
+        .filename {
+            font-weight: bold;
+            color: #333;
+        }
+        .file-details {
+            color: #666;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        .select-button {
+            background-color: #FF9800;
+            margin-left: 10px;
+        }
+        .select-button:hover {
+            background-color: #e68a00;
+        }
+        .current-badge {
+            background-color: #4CAF50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+        .no-files {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
     <h1>Upload file</h1>
-    <form action="/upload_file" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" required>
-        <button type="submit">Upload</button>
-    </form>
+    
+    <div class="upload-section">
+        <form action="/upload_file" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit">Upload</button>
+        </form>
+    </div>
+    
+    <div class="file-list-section">
+        <h2>Or select a previously uploaded file</h2>
+        <button type="button" onclick="refreshFileList()" class="refresh-button">Refresh list</button>
+        <div id="file-list">
+            <p>Loading files...</p>
+        </div>
+    </div>
+    
+    <script>
+        function formatFileSize(bytes) {
+            if (bytes === 0) return "0 Bytes";
+            const k = 1024;
+            const sizes = ["Bytes", "KB", "MB", "GB"];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+        }
+        
+        function refreshFileList() {
+            fetch("/list_input_files")
+                .then(response => response.json())
+                .then(data => {
+                    const fileList = document.getElementById("file-list");
+                    fileList.innerHTML = "";
+                    
+                    if (data.files.length === 0) {
+                        fileList.innerHTML = "<p class='no-files'>No files found in input directory.</p>";
+                        return;
+                    }
+                    
+                    data.files.forEach(file => {
+                        const fileSize = formatFileSize(file.size);
+                        const modifiedDate = new Date(file.modified * 1000).toLocaleString();
+                        const isCurrent = file.name === data.current_file;
+                        
+                        const fileItem = document.createElement("div");
+                        fileItem.className = "file-item" + (isCurrent ? " current" : "");
+                        
+                        let buttonHtml = "";
+                        if (isCurrent) {
+                            buttonHtml = `<span class="current-badge">Current</span>`;
+                        } else {
+                            buttonHtml = `<button type="button" class="select-button" onclick="selectFile('${file.name}')">Select</button>`;
+                        }
+                        
+                        fileItem.innerHTML = `
+                            <div class="file-info">
+                                <span class="filename">${file.name}</span>
+                                <span class="file-details">${fileSize} - ${modifiedDate}</span>
+                            </div>
+                            ${buttonHtml}
+                        `;
+                        fileList.appendChild(fileItem);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching file list:", error);
+                    document.getElementById("file-list").innerHTML = "<p class='no-files'>Error loading file list.</p>";
+                });
+        }
+        
+        function selectFile(filename) {
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = "/select_file";
+            
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = "filename";
+            input.value = filename;
+            
+            form.appendChild(input);
+            document.body.appendChild(form);
+            form.submit();
+        }
+        
+        // Load file list on page load
+        refreshFileList();
+    </script>
 </body>
 </html>
